@@ -1,0 +1,163 @@
+0x0040a1b8   (null)
+0x0040a1c0   runtime error 
+0x0040a1d4   TLOSS error
+
+0x0040a1e4   SING error
+
+0x0040a1f4   DOMAIN error
+
+0x0040a204   R6028
+- unable to initialize heap
+
+0x0040a22c   R6027
+- not enough space for lowio initialization
+
+0x0040a264   R6026
+- not enough space for stdio initialization
+
+0x0040a29c   R6025
+- pure virtual function call
+
+0x0040a2c4   R6024
+- not enough space for _onexit/atexit table
+
+0x0040a2fc   R6019
+- unable to open console device
+
+0x0040a328   R6018
+- unexpected heap error
+
+0x0040a34c   R6017
+- unexpected multithread lock error
+
+0x0040a37c   R6016
+- not enough space for thread data
+
+0x0040a3a8   
+abnormal program termination
+
+0x0040a3cc   R6009
+- not enough space for environment
+
+0x0040a3f8   R6008
+- not enough space for arguments
+
+0x0040a424   R6002
+- floating point not loaded
+
+0x0040a44c   Microsoft Visual C++ Runtime Library
+0x0040a478   Runtime Error!
+
+Program: 
+0x0040a498   <program name unknown>
+0x0040a4b0   SunMonTueWedThuFriSat
+0x0040a4c8   JanFebMarAprMayJunJulAugSepOctNovDec
+0x0040a4f4   GetLastActivePopup
+0x0040a508   GetActiveWindow
+0x0040a518   MessageBoxA
+0x0040a524   user32.dll
+0x0040a708   KERNEL32.DLL
+0x0040a715   GDI32.dll
+0x0040a71f   USER32.dll
+0x0040a72c   GlobalAlloc
+0x0040a73a   GlobalLock
+0x0040a746   GlobalUnlock
+0x0040a754   GetStartupInfoA
+0x0040a766   HeapDestroy
+0x0040a774   HeapCreate
+0x0040a780   CompareStringW
+0x0040a790   CompareStringA
+0x0040a7a0   SetEnvironmentVariableA
+0x0040a7ba   GetStringTypeA
+0x0040a7ca   LCMapStringW
+0x0040a7d8   GetStringTypeW
+0x0040a7e8   MultiByteToWideChar
+0x0040a7fe   SetEndOfFile
+0x0040a80c   LCMapStringA
+0x0040a81a   GetProcAddress
+0x0040a82a   GetOEMCP
+0x0040a834   LoadLibraryA
+0x0040a842   GetCPInfo
+0x0040a84e   CreateFileA
+0x0040a85c   GetACP
+0x0040a864   FlushFileBuffers
+0x0040a876   SetStdHandle
+0x0040a884   SetFilePointer
+0x0040a894   GetFileType
+0x0040a8a2   GetStdHandle
+0x0040a8b0   HeapFree
+0x0040a8ba   HeapAlloc
+0x0040a8c6   ExitProcess
+0x0040a8d4   TerminateProcess
+0x0040a8e6   GetCurrentProcess
+0x0040a8fa   GetTimeZoneInformation
+0x0040a912   GetSystemTime
+0x0040a922   GetLocalTime
+0x0040a930   GetModuleHandleA
+0x0040a942   GetCommandLineA
+0x0040a954   GetVersion
+0x0040a960   GetLastError
+0x0040a96e   CloseHandle
+0x0040a97c   UnhandledExceptionFilter
+0x0040a996   RtlUnwind
+0x0040a9a2   VirtualFree
+0x0040a9b0   VirtualAlloc
+0x0040a9be   HeapReAlloc
+0x0040a9cc   ReadFile
+0x0040a9d6   WriteFile
+0x0040a9e2   GetModuleFileNameA
+0x0040a9f6   FreeEnvironmentStringsA
+0x0040aa10   FreeEnvironmentStringsW
+0x0040aa2a   WideCharToMultiByte
+0x0040aa40   GetEnvironmentStrings
+0x0040aa58   GetEnvironmentStringsW
+0x0040aa70   SetHandleCount
+0x0040aa80   SetBkColor
+0x0040aa8c   GetStockObject
+0x0040aa9c   SetDIBitsToDevice
+0x0040aab0   InvalidateRect
+0x0040aac0   EndPaint
+0x0040aaca   DefWindowProcA
+0x0040aada   PostQuitMessage
+0x0040aaec   DrawTextA
+0x0040aaf8   BeginPaint
+0x0040ab04   EmptyClipboard
+0x0040ab14   GetClipboardData
+0x0040ab26   OpenClipboard
+0x0040ab36   LoadIconA
+0x0040ab42   SetClipboardData
+0x0040ab54   CloseClipboard
+0x0040ab64   GetSystemMetrics
+0x0040ab76   LoadCursorA
+0x0040ab84   RegisterClassExA
+0x0040ab96   UpdateWindow
+0x0040aba4   CreateWindowExA
+0x0040abb6   ShowWindow
+0x0040abc2   DispatchMessageA
+0x0040abd4   GetMessageA
+0x0040abe2   TranslateMessage
+0x0040b0ee   q_<S>>chroma.dat
+0x0040b108   more levels @
+0x0040b118   freeware
+0x0040b124   Click on a level or press spacebar for next.
+0x0040b154   (won)
+0x0040b15c   You win!
+0x00415c38   The conduits on the map will only allow light to pass in one direction, such as up&down or left&right.
+0x00415ca0   The TELEPORTER causes laser beams to jump instantaneously to the next teleporter in the same direction as beam is travelling. (If there's no teleporter in that direction, the beam disappears.)
+0x00415d64   If there are any black pinwheel targets, you don't win the level until none of the black pinwheels are being hit by lasers of any color.
+0x00415df0   The white laser combines red, blue, and green light in a single beam. The white pinwheel requires at least one each of red, blue, and green. (The white laser does nicely.)
+0x00415e9c   You can now try two different levels by clicking on the numbers at the bottom of the screen. You can switch at any time; blue levels are complete, green levels are open, and red levels are inaccessible.
+0x00415f68   The quantum tangler takes a beam in on one side and outputs a pair of beams in opposite directions. These beams are quantum entangled, so when you change the color of one beam with a doppler, the other beam will change in the opposite direction.
+0x00416060   The doppler turns red beams into green, green into blue, and blue into red--or if you go through it backwards, the opposite.
+0x004160e0   The BENDER is an angled reflector. Because of its angle, it bends lasers from horizontal and vertical to the diagonals, and vice versa.
+0x00416168   The PRISM bends red, green, and blue light differently when you hit it on its long face at a glancing angle.
+0x004161d8   Mirrors and lenses generally work in both directions. The splitter not only splits a laser beam coming in, but it can merge two laser beams into a single one, forming a new colored beam.
+0x00416294   If a laser hits a SPLITTER at the correct angle, it bounces off at an angle and also goes straight through. If it hits head on, it just goes through.
+0x0041632c   When a quantum-entangled beam goes through a splitter or another quantum tangler, the quantum wave function collapses, and the two beams are no longer entangled.
+0x004163d0   Some pinwheels require multiple lasers to light them up. You get magenta from red and blue. Yellow is formed by green plus red. Combining green and blue yields a color known variously as cyan, teal, or aqua.
+0x004164a0   Like splitters, you can also send light backwards through a prism to produce a multicolored beam.
+0x00416504   The FILTER only allows one color of light through--try them on a white laser.
+0x00416554   To complete a level, every pinwheel must be hit by light of the same color, and not by any other colors.
+0x004165c0   Drag the REFLECTOR in the toolbox above onto the board and place it in front of the laser beam. Click on it to rotate it. Position the mirror so that the laser beam is reflected into the pinwheel.
+0x00416688   Chromatron
+0x004166a4   Chromatron 1.14

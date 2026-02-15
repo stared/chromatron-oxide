@@ -1,0 +1,139 @@
+0x0000147c   /usr/lib/dyld
+0x000014a4   /System/Library/Frameworks/Carbon.framework/Versions/A/Carbon
+0x000014fc   /usr/lib/libSystem.B.dylib
+0x00006b7c   __dyld_mod_term_funcs
+0x00006b94   __dyld_make_delayed_module_initializer_calls
+0x00006bc4   The kernel support for the dynamic linker is not present to run this program.
+
+0x00006c14   menus
+0x00006c1c   MenuBar
+0x00006c24   UseMouseWheelToChangeLevel
+0x00006c40   Chromatron 1 (v1.15)
+0x00006c58   %s:%u: failed assertion `%s'
+
+0x00006c78   ../game.c
+0x00006c84   0
+0x00006c88   n >= 0 && n < 128
+0x00006c9c   com.silverspaceship.chromatron.dat
+0x00006cc0   rb
+0x00006cc4   wb
+0x00006cc8   b != -1
+0x00006cd0   b < num_images
+0x00006ce0   You win!
+0x00006cec   (won)
+0x00006cf4   Click on a level or press spacebar for next.
+0x00006d24   freeware
+0x00006d30   more levels @
+0x00006d40   Drag the REFLECTOR in the toolbox above onto the board and place it in front of the laser beam. Click on it to rotate it. Position the mirror so that the laser beam is reflected into the pinwheel.
+0x00006e08   To complete a level, every pinwheel must be hit by light of the same color, and not by any other colors.
+0x00006e74   The FILTER only allows one color of light through--try them on a white laser.
+0x00006ec4   Like splitters, you can also send light backwards through a prism to produce a multicolored beam.
+0x00006f28   Some pinwheels require multiple lasers to light them up. You get magenta from red and blue. Yellow is formed by green plus red. Combining green and blue yields a color known variously as cyan, teal, or aqua.
+0x00006ff8   When a quantum-entangled beam goes through a splitter or another quantum tangler, the quantum wave function collapses, and the two beams are no longer entangled.
+0x0000709c   If a laser hits a SPLITTER at the correct angle, it bounces off at an angle and also goes straight through. If it hits head on, it just goes through.
+0x00007134   Mirrors and lenses generally work in both directions. The splitter not only splits a laser beam coming in, but it can merge two laser beams into a single one, forming a new colored beam.
+0x000071f0   The PRISM bends red, green, and blue light differently when you hit it on its long face at a glancing angle.
+0x00007260   The BENDER is an angled reflector. Because of its angle, it bends lasers from horizontal and vertical to the diagonals, and vice versa.
+0x000072e8   The doppler turns red beams into green, green into blue, and blue into red--or if you go through it backwards, the opposite.
+0x00007368   The quantum tangler takes a beam in on one side and outputs a pair of beams in opposite directions. These beams are quantum entangled, so when you change the color of one beam with a doppler, the other beam will change in the opposite direction.
+0x00007460   You can now try two different levels by clicking on the numbers at the bottom of the screen. You can switch at any time; blue levels are complete, green levels are open, and red levels are inaccessible.
+0x0000752c   The white laser combines red, blue, and green light in a single beam. The white pinwheel requires at least one each of red, blue, and green. (The white laser does nicely.)
+0x000075d8   If there are any black pinwheel targets, you don't win the level until none of the black pinwheels are being hit by lasers of any color.
+0x00007664   The TELEPORTER causes laser beams to jump instantaneously to the next teleporter in the same direction as beam is travelling. (If there's no teleporter in that direction, the beam disappears.)
+0x00007728   The conduits on the map will only allow light to pass in one direction, such as up&down or left&right.
+0x00007fb7   Hwind
+0x00017864   _NXArgc
+0x0001786c   _NXArgv
+0x00017874   ___progname
+0x00017880   __mh_execute_header
+0x00017894   _catch_exception_raise
+0x000178ab   _catch_exception_raise_state
+0x000178c8   _catch_exception_raise_state_identity
+0x000178ee   _clock_alarm_reply
+0x00017901   _do_mach_notify_dead_name
+0x0001791b   _do_mach_notify_no_senders
+0x00017936   _do_mach_notify_port_deleted
+0x00017953   _do_mach_notify_send_once
+0x0001796d   _do_seqnos_mach_notify_dead_name
+0x0001798e   _do_seqnos_mach_notify_no_senders
+0x000179b0   _do_seqnos_mach_notify_port_deleted
+0x000179d4   _do_seqnos_mach_notify_send_once
+0x000179f5   _environ
+0x000179fe   _receive_samples
+0x00017a0f   _CFPreferencesAppSynchronize
+0x00017a2c   _CFPreferencesGetAppBooleanValue
+0x00017a4d   _CFPreferencesSetAppValue
+0x00017a67   _CFRelease
+0x00017a72   _CFStringCreateWithCString
+0x00017a8d   _CGColorSpaceCreateDeviceRGB
+0x00017aaa   _CGContextDrawImage
+0x00017abe   _CGContextFlush
+0x00017ace   _CGDataProviderCreateWithData
+0x00017aec   _CGDataProviderRelease
+0x00017b03   _CGImageCreate
+0x00017b12   _CGImageRelease
+0x00017b22   _ClearCurrentScrap
+0x00017b35   _CreateNewWindow
+0x00017b46   _CreateNibReference
+0x00017b5a   _DisposeNibReference
+0x00017b6f   _DrawThemeTextBox
+0x00017b81   _FSFindFolder
+0x00017b8f   _FSRefMakePath
+0x00017b9e   _GetCurrentScrap
+0x00017baf   _GetEventKind
+0x00017bbd   _GetEventParameter
+0x00017bd0   _GetMenuCommandMark
+0x00017be4   _GetScrapFlavorData
+0x00017bf8   _GetScrapFlavorSize
+0x00017c0c   _GetWindowBounds
+0x00017c1d   _GetWindowEventTarget
+0x00017c33   _GetWindowPort
+0x00017c42   _InstallEventHandler
+0x00017c57   _InvalWindowRect
+0x00017c68   _IsWindowHilited
+0x00017c79   _NewEventHandlerUPP
+0x00017c8d   _PtInRect
+0x00017c97   _PutScrapFlavor
+0x00017ca7   _QDBeginCGContext
+0x00017cb9   _QDEndCGContext
+0x00017cc9   _QuitApplicationEventLoop
+0x00017ce3   _RepositionWindow
+0x00017cf5   _RunApplicationEventLoop
+0x00017d0e   _SetMenuBarFromNib
+0x00017d21   _SetMenuCommandMark
+0x00017d35   _SetWindowTitleWithCFString
+0x00017d51   _ShowWindow
+0x00017d5d   ___CFStringMakeConstantString
+0x00017d7b   ___keymgr_dwarf2_register_sections
+0x00017d9e   ___keymgr_global
+0x00017daf   ___sF
+0x00017db5   __cthread_init_routine
+0x00017dcc   __dyld_register_func_for_add_image
+0x00017def   __dyld_register_func_for_remove_image
+0x00017e15   __init_keymgr
+0x00017e23   __keymgr_get_and_lock_processwide_ptr
+0x00017e49   __keymgr_set_and_unlock_processwide_ptr
+0x00017e71   _abort
+0x00017e78   _atexit
+0x00017e80   _calloc
+0x00017e88   _chdir
+0x00017e8f   _errno
+0x00017e96   _exit
+0x00017e9c   _fclose
+0x00017ea4   _fflush
+0x00017eac   _fopen
+0x00017eb3   _fprintf
+0x00017ebc   _fread
+0x00017ec3   _free
+0x00017ec9   _fwrite
+0x00017ed1   _kCFAllocatorDefault
+0x00017ee6   _kCFBooleanFalse
+0x00017ef7   _kCFBooleanTrue
+0x00017f07   _kCFPreferencesCurrentApplication
+0x00017f29   _mach_init_routine
+0x00017f3c   _malloc
+0x00017f44   _memcpy
+0x00017f4c   _memset
+0x00017f54   _qsort
+0x00017f5b   _strcpy
+0x00017f63   _strlen
