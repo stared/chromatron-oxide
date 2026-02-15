@@ -1,0 +1,97 @@
+BeginPaint
+CloseClipboard
+CloseHandle
+CompareStringA
+CompareStringW
+CreateFileA
+CreateWindowExA
+DefWindowProcA
+DispatchMessageA
+Drag the REFLECTOR in the toolbox above onto the board and place it in front of the laser beam. Click on it to rotate it. Position the mirror so that the laser beam is reflected into the pinwheel.
+DrawTextA
+EmptyClipboard
+EndPaint
+ExitProcess
+FlushFileBuffers
+FreeEnvironmentStringsA
+FreeEnvironmentStringsW
+GetACP
+GetActiveWindow
+GetClipboardData
+GetCommandLineA
+GetCPInfo
+GetCurrentProcess
+GetEnvironmentStrings
+GetEnvironmentStringsW
+GetFileType
+GetLastActivePopup
+GetLastError
+GetLocalTime
+GetMessageA
+GetModuleFileNameA
+GetModuleHandleA
+GetOEMCP
+GetProcAddress
+GetStartupInfoA
+GetStdHandle
+GetStockObject
+GetStringTypeA
+GetStringTypeW
+GetSystemMetrics
+GetSystemTime
+GetTimeZoneInformation
+GetVersion
+GlobalAlloc
+GlobalLock
+GlobalUnlock
+HeapAlloc
+HeapCreate
+HeapDestroy
+HeapFree
+HeapReAlloc
+If a laser hits a SPLITTER at the correct angle, it bounces off at an angle and also goes straight through. If it hits head on, it just goes through.
+InvalidateRect
+It?I
+ItBIt#I
+JanFebMarAprMayJunJulAugSepOctNovDec
+LoadCursorA
+LoadIconA
+LoadLibraryA
+MessageBoxA
+Microsoft Visual C++ Runtime Library
+Mirrors and lenses generally work in both directions. The splitter not only splits a laser beam coming in, but it can merge two laser beams into a single one, forming a new colored beam.
+MultiByteToWideChar
+OpenClipboard
+Pj hXpA
+PostQuitMessage
+ReadFile
+RegisterClassExA
+RtlUnwind
+Runtime Error!
+SetBkColor
+SetClipboardData
+SetDIBitsToDevice
+SetEndOfFile
+SetEnvironmentVariableA
+SetFilePointer
+SetHandleCount
+SetStdHandle
+ShowWindow
+Some pinwheels require multiple lasers to light them up. You get magenta from red and blue. Yellow is formed by green plus red. Combining green and blue yields a color known variously as cyan, teal, or aqua.
+SunMonTueWedThuFriSat
+TerminateProcess
+The BENDER is an angled reflector. Because of its angle, it bends lasers from horizontal and vertical to the diagonals, and vice versa.
+The FILTER only allows one color of light through--try them on a white laser.
+The PRISM bends red, green, and blue light differently when you hit it on its long face at a glancing angle.
+The quantum tangler takes a beam in on one side and outputs a pair of beams in opposite directions. These beams are quantum entangled, so when you change the color of one beam with a doppler, the other beam will change in the opposite direction.
+The TELEPORTER causes laser beams to jump instantaneously to the next teleporter in the same direction as beam is travelling. (If there's no teleporter in that direction, the beam disappears.)
+The white laser combines red, blue, and green light in a single beam. The white pinwheel requires at least one each of red, blue, and green. (The white laser does nicely.)
+TranslateMessage
+UnhandledExceptionFilter
+UpdateWindow
+VirtualAlloc
+VirtualFree
+WideCharToMultiByte
+Wj@Y3
+WriteFile
+You can now try two different levels by clicking on the numbers at the bottom of the screen. You can switch at any time; blue levels are complete, green levels are open, and red levels are inaccessible.

@@ -1,0 +1,222 @@
+__dyld_mod_term_funcs
+__dyld_make_delayed_module_initializer_calls
+The kernel support for the dynamic linker is not present to run this program.
+menus
+MenuBar
+UseMouseWheelToChangeLevel
+Chromatron 1 (v1.15)
+%s:%u: failed assertion `%s'
+../game.c
+n >= 0 && n < 128
+com.silverspaceship.chromatron.dat
+b != -1
+b < num_images
+You win!
+(won)
+Click on a level or press spacebar for next.
+freeware
+more levels @
+Drag the REFLECTOR in the toolbox above onto the board and place it in front of the laser beam. Click on it to rotate it. Position the mirror so that the laser beam is reflected into the pinwheel.
+To complete a level, every pinwheel must be hit by light of the same color, and not by any other colors.
+The FILTER only allows one color of light through--try them on a white laser.
+Like splitters, you can also send light backwards through a prism to produce a multicolored beam.
+Some pinwheels require multiple lasers to light them up. You get magenta from red and blue. Yellow is formed by green plus red. Combining green and blue yields a color known variously as cyan, teal, or aqua.
+When a quantum-entangled beam goes through a splitter or another quantum tangler, the quantum wave function collapses, and the two beams are no longer entangled.
+If a laser hits a SPLITTER at the correct angle, it bounces off at an angle and also goes straight through. If it hits head on, it just goes through.
+Mirrors and lenses generally work in both directions. The splitter not only splits a laser beam coming in, but it can merge two laser beams into a single one, forming a new colored beam.
+The PRISM bends red, green, and blue light differently when you hit it on its long face at a glancing angle.
+The BENDER is an angled reflector. Because of its angle, it bends lasers from horizontal and vertical to the diagonals, and vice versa.
+The doppler turns red beams into green, green into blue, and blue into red--or if you go through it backwards, the opposite.
+The quantum tangler takes a beam in on one side and outputs a pair of beams in opposite directions. These beams are quantum entangled, so when you change the color of one beam with a doppler, the other beam will change in the opposite direction.
+You can now try two different levels by clicking on the numbers at the bottom of the screen. You can switch at any time; blue levels are complete, green levels are open, and red levels are inaccessible.
+The white laser combines red, blue, and green light in a single beam. The white pinwheel requires at least one each of red, blue, and green. (The white laser does nicely.)
+If there are any black pinwheel targets, you don't win the level until none of the black pinwheels are being hit by lasers of any color.
+The TELEPORTER causes laser beams to jump instantaneously to the next teleporter in the same direction as beam is travelling. (If there's no teleporter in that direction, the beam disappears.)
+The conduits on the map will only allow light to pass in one direction, such as up&down or left&right.
+wind
+Hwind
+mous
+mous
+mous
+mous
+keyb
+cmds
+q_<S>>
+'78%
++91:0
+cehe
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+ehec
+ehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehec
+cehe
+*$"$*
+(" "(
+*$"$*
+*($"**
+*$ $$
+*"$"*
+(*$*
+*$"$*
+(" "(
+*$"$*
+(*$*
+*"$"*
+*$ $$
+*($"**
+*$"$*
+(" "(
+*$"$*
+*$*(
+*"$"*
+$$ $*
+**"$(*
+*$"$*
+(" "(
+*$"$*
+**"$(*
+$$ $*
+*"$"*
+*$*(
+` C` C` C` C` C
+` C` C` C` C` C
+` C` C` C` C` C
+` 6C`
+` 6C`
+C`t C
+C`t C
+`C6 `
+`C6 `
+C t`C
+C t`C
+C `C `C `C `C `
+C `C `C `C `C `
+C `C `C `C `C `
+C t`C
+C t`C
+`C6 `
+`C6 `
+)C`t C
+C`t C
+` 6C`)
+` 6C`
+JECEJ
+ICBCI
+JECEJ
+JECEJJ
+ICBCI
+JECEJ
+JJIJ
+JECEJ
+ICBCI
+JECEJ
+JJIJ
+JECEJ
+ICBCI
+JECEJL
+JECEJ
+ICBCI
+JECEJ
+JIJK
+JECEJ
+ICBCI
+KJECEJ
+JECEJ
+ICBCI
+JECEJ
+KJECEJ
+ICBCI
+JECEJ
+JIJK
+jdbdj
+hb`bh
+jdbdj
+jdbdjk
+hb`bh
+jdbdj
+kjhj
+jdbdj
+hb`bh
+jdbdj
+kjhj
+jdbdj
+hb`bh
+jdbdjk
+jdbdj
+hb`bh
+jdbdj
+jhjk
+jdbdj
+hb`bh
+kjdbdj
+jdbdj
+hb`bh
+jdbdj
+kjdbdj
+hb`bh
+jdbdj
+jhjk
+#%(%
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+%(%#
+%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%#
+#%(%
+CEHE
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+EHEC
+EHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHEC
+CEHE
+TT@@@
+|||lll\\\LLL<<<,,,
+@||
+||(||@||X||p||

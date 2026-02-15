@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.silverspaceship.chromatron1</string>
+	<key>CFBundleName</key>
+	<string>Chromatron</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Chromatron 1 (v1.15), Copyright © 2003 by Sean Barrett</string>
+	<key>CFBundleShortVersionString</key>
+	<string>Chromatron 1 (v1.15)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>Crm1</string>
+	<key>CFBundleExecutable</key>
+	<string>chromatron1</string>
+	<key>CFBundleVersion</key>
+	<string>1.15</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleIconFile</key>
+	<string>chromatron1.icns</string>
+	<key>LSRequiresCarbon</key>
+	<true/>
+</dict>
+</plist>
