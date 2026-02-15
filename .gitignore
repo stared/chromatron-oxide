@@ -1,0 +1,24 @@
+# Ghidra project files
+ghidra/
+
+# Build artifacts
+build/
+*.o
+*.d
+src/chromatron
+web/*.js
+web/*.wasm
+web/*.data
+web/*.html
+!web/index.html
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
