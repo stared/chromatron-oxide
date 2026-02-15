@@ -1,5 +1,8 @@
 # Ghidra project files
 ghidra/
+*_ghidra/
+*.gpr
+*.rep/
 
 # Build artifacts
 build/
@@ -22,3 +25,8 @@ Thumbs.db
 *~
 .vscode/
 .idea/
+
+
+# Added by cargo
+
+/target
