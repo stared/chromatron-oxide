@@ -98,13 +98,8 @@ fn trace_beams(
                 continue;
             }
 
-            let ux = nx as usize;
-            let uy = ny as usize;
-
-            // Mark beam in the cell's outgoing data for rendering
-            grid[uy][ux].beam_outgoing[beam.dir as usize & 7] |= beam.color;
-
             // Interact with piece at this cell
+            // (beam_outgoing is set inside interact_piece via emit_beam)
             interact_piece(
                 grid, &mut queue_b, &mut entangle_counter,
                 nx, ny, beam.dir, beam.color, beam.entangle_id,
@@ -151,7 +146,7 @@ fn interact_piece(
     match cell_type {
         PieceType::Empty => {
             // Beam passes through empty cell
-            add_beam(queue, x, y, dir, color, entangle_id);
+            emit_beam(grid, queue, x, y, dir, color, entangle_id);
         }
         PieceType::Wall => {
             // Wall blocks the beam — do nothing
@@ -163,9 +158,9 @@ fn interact_piece(
             // Source: case 3 in FUN_00401090
             // Reflects beam: relative dir 1→rot-1, 2→rot-2, 3→rot-3
             match rel_dir {
-                1 => add_beam(queue, x, y, (cell_rot.wrapping_sub(1)) & 7, color, entangle_id),
-                2 => add_beam(queue, x, y, (cell_rot.wrapping_sub(2)) & 7, color, entangle_id),
-                3 => add_beam(queue, x, y, (cell_rot.wrapping_sub(3)) & 7, color, entangle_id),
+                1 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(1)) & 7, color, entangle_id),
+                2 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(2)) & 7, color, entangle_id),
+                3 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(3)) & 7, color, entangle_id),
                 _ => {} // Other angles: beam blocked
             }
         }
@@ -173,10 +168,10 @@ fn interact_piece(
             // Source: case 4 in FUN_00401090
             // Angled reflector: 0→rot-1, 1→rot-2, 2→rot-3, 3→rot-4
             match rel_dir {
-                0 => add_beam(queue, x, y, (cell_rot.wrapping_sub(1)) & 7, color, entangle_id),
-                1 => add_beam(queue, x, y, (cell_rot.wrapping_sub(2)) & 7, color, entangle_id),
-                2 => add_beam(queue, x, y, (cell_rot.wrapping_sub(3)) & 7, color, entangle_id),
-                3 => add_beam(queue, x, y, (cell_rot.wrapping_sub(4)) & 7, color, entangle_id),
+                0 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(1)) & 7, color, entangle_id),
+                1 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(2)) & 7, color, entangle_id),
+                2 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(3)) & 7, color, entangle_id),
+                3 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(4)) & 7, color, entangle_id),
                 _ => {} // Blocked
             }
         }
@@ -184,7 +179,7 @@ fn interact_piece(
             // Source: case 5 in FUN_00401090
             // Only passes through matching color on directions 2 and 6 (along axis)
             if (rel_dir == 2 || rel_dir == 6) && (cell_color & color) != 0 {
-                add_beam(queue, x, y, dir, cell_color & color, entangle_id);
+                emit_beam(grid, queue, x, y, dir, cell_color & color, entangle_id);
             }
         }
         PieceType::Prism => {
@@ -200,7 +195,7 @@ fn interact_piece(
                     _ => None,
                 };
                 if let Some(d) = out_dir {
-                    add_beam(queue, x, y, d, 4, entangle_id);
+                    emit_beam(grid, queue, x, y, d, 4, entangle_id);
                 }
             }
             // Green (bit 1):
@@ -213,16 +208,16 @@ fn interact_piece(
                     _ => None,
                 };
                 if let Some(d) = out_dir {
-                    add_beam(queue, x, y, d, 2, entangle_id);
+                    emit_beam(grid, queue, x, y, d, 2, entangle_id);
                 }
             }
             // Red (bit 0):
             if color & 1 != 0 {
                 match rel_dir {
-                    0 => add_beam(queue, x, y, (cell_rot.wrapping_sub(2)) & 7, 1, entangle_id),
-                    2 => add_beam(queue, x, y, (cell_rot.wrapping_sub(4)) & 7, 1, entangle_id),
-                    5 => add_beam(queue, x, y, (cell_rot.wrapping_add(3)) & 7, 1, entangle_id),
-                    7 => add_beam(queue, x, y, (cell_rot.wrapping_add(1)) & 7, 1, entangle_id),
+                    0 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(2)) & 7, 1, entangle_id),
+                    2 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(4)) & 7, 1, entangle_id),
+                    5 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_add(3)) & 7, 1, entangle_id),
+                    7 => emit_beam(grid, queue, x, y, (cell_rot.wrapping_add(1)) & 7, 1, entangle_id),
                     _ => {}
                 }
             }
@@ -241,7 +236,7 @@ fn interact_piece(
                 if entangle_id != 0 {
                     new_color = color; // Entangled beams pass through unchanged initially
                 }
-                add_beam(queue, x, y, dir, new_color, entangle_id);
+                emit_beam(grid, queue, x, y, dir, new_color, entangle_id);
             } else if rel_dir == 6 {
                 // Reverse: R→B, G→R, B→G
                 let mut new_color: u8 = 0;
@@ -251,7 +246,7 @@ fn interact_piece(
                 if entangle_id != 0 {
                     new_color = color;
                 }
-                add_beam(queue, x, y, dir, new_color, entangle_id);
+                emit_beam(grid, queue, x, y, dir, new_color, entangle_id);
             }
             // Other directions: blocked
         }
@@ -263,26 +258,26 @@ fn interact_piece(
             if passes_through {
                 // Collapse entanglement when going through splitter
                 let eid = if rel_dir == 2 || rel_dir == 6 { entangle_id } else { 0 };
-                add_beam(queue, x, y, dir, color, eid);
+                emit_beam(grid, queue, x, y, dir, color, eid);
             }
 
             // Split at diagonal approaches
             match rel_dir {
                 1 => {
-                    add_beam(queue, x, y, dir, color, 0); // Through
-                    add_beam(queue, x, y, (cell_rot.wrapping_sub(1)) & 7, color, 0); // Reflect
+                    emit_beam(grid, queue, x, y, dir, color, 0); // Through
+                    emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(1)) & 7, color, 0); // Reflect
                 }
                 3 => {
-                    add_beam(queue, x, y, dir, color, 0);
-                    add_beam(queue, x, y, (cell_rot.wrapping_sub(3)) & 7, color, 0);
+                    emit_beam(grid, queue, x, y, dir, color, 0);
+                    emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(3)) & 7, color, 0);
                 }
                 5 => {
-                    add_beam(queue, x, y, dir, color, 0);
-                    add_beam(queue, x, y, (cell_rot.wrapping_add(3)) & 7, color, 0);
+                    emit_beam(grid, queue, x, y, dir, color, 0);
+                    emit_beam(grid, queue, x, y, (cell_rot.wrapping_add(3)) & 7, color, 0);
                 }
                 7 => {
-                    add_beam(queue, x, y, dir, color, 0);
-                    add_beam(queue, x, y, (cell_rot.wrapping_add(1)) & 7, color, 0);
+                    emit_beam(grid, queue, x, y, dir, color, 0);
+                    emit_beam(grid, queue, x, y, (cell_rot.wrapping_add(1)) & 7, color, 0);
                 }
                 _ => {}
             }
@@ -296,8 +291,8 @@ fn interact_piece(
                 while bit < 5 {
                     if color & bit != 0 {
                         let eid = *entangle_counter;
-                        add_beam(queue, x, y, cell_rot & 7, bit, eid);
-                        add_beam(queue, x, y, (cell_rot.wrapping_sub(4)) & 7, bit, eid);
+                        emit_beam(grid, queue, x, y, cell_rot & 7, bit, eid);
+                        emit_beam(grid, queue, x, y, (cell_rot.wrapping_sub(4)) & 7, bit, eid);
                         *entangle_counter += 1;
                     }
                     bit *= 2;
@@ -308,13 +303,13 @@ fn interact_piece(
         PieceType::Target => {
             // Source: case 0xa in FUN_00401090
             // Target just passes beam through (absorbs and marks)
-            add_beam(queue, x, y, dir, color, entangle_id);
+            emit_beam(grid, queue, x, y, dir, color, entangle_id);
         }
         PieceType::Conduit => {
             // Source: case 0xb in FUN_00401090
             // Only passes beam on axis-aligned directions (0 and 4 = N and S, relative)
             if rel_dir == 0 || rel_dir == 4 {
-                add_beam(queue, x, y, dir, color, entangle_id);
+                emit_beam(grid, queue, x, y, dir, color, entangle_id);
             }
         }
         PieceType::Teleporter => {
@@ -327,7 +322,7 @@ fn interact_piece(
             while tx >= 0 && tx < GRID_SIZE as i32 && ty >= 0 && ty < GRID_SIZE as i32 {
                 if grid[ty as usize][tx as usize].piece_type == PieceType::Teleporter {
                     // Found next teleporter — emit beam from there
-                    add_beam(queue, tx, ty, dir, color, entangle_id);
+                    emit_beam(grid, queue, tx, ty, dir, color, entangle_id);
                     break;
                 }
                 tx += dx;
@@ -338,9 +333,17 @@ fn interact_piece(
     }
 }
 
-fn add_beam(queue: &mut Vec<Beam>, x: i32, y: i32, dir: u8, color: u8, entangle_id: u32) {
+/// Add a beam to the queue AND mark outgoing direction on the cell for rendering.
+/// This ensures beams visually originate from cell centers at the correct output angle.
+fn emit_beam(
+    grid: &mut [[Cell; GRID_SIZE]; GRID_SIZE],
+    queue: &mut Vec<Beam>,
+    x: i32, y: i32, dir: u8, color: u8, entangle_id: u32,
+) {
+    let d = dir & 7;
+    grid[y as usize][x as usize].beam_outgoing[d as usize] |= color;
     if queue.len() < MAX_BEAM_QUEUE {
-        queue.push(Beam { x, y, dir: dir & 7, color, entangle_id });
+        queue.push(Beam { x, y, dir: d, color, entangle_id });
     }
 }
 

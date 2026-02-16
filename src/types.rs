@@ -219,15 +219,18 @@ pub struct LevelDef {
 /// Source: DAT_0040b0c0, extracted from binary
 /// Note: original stores as packed u32, we use (R,G,B) tuples
 /// 0=black, 1=red(0xFF0000), 2=green(0x00C800), 3=yellow, 4=blue(0x0000FF), 5=magenta, 6=cyan, 7=white
+/// Beam colors extracted from DAT_0040b0c0 (beam_color_table).
+/// Binary stores as 0xRRGGBB packed u32. Color bitmask uses BGR bit order:
+///   bit0=Blue(1), bit1=Green(2), bit2=Red(4)
 pub const BEAM_COLORS: [(u8, u8, u8); 8] = [
-    (0, 0, 0),       // 0: none/black
-    (255, 0, 0),     // 1: red     (original: 0x0000FF in BGR = FF0000 RGB)
-    (0, 200, 0),     // 2: green   (original: 0x00C800)
-    (255, 200, 0),   // 3: yellow  (R+G)
-    (0, 0, 255),     // 4: blue    (original: 0xFF0000 in BGR = 0000FF RGB)
-    (255, 0, 255),   // 5: magenta (R+B)
-    (0, 200, 255),   // 6: cyan    (G+B)
-    (255, 255, 255), // 7: white   (R+G+B)
+    (0, 0, 0),       // 0: none         0x000000
+    (0, 0, 255),     // 1: blue         0x0000FF
+    (0, 200, 0),     // 2: green        0x00C800
+    (0, 200, 255),   // 3: cyan  (G+B)  0x00C8FF
+    (255, 0, 0),     // 4: red          0xFF0000
+    (255, 0, 255),   // 5: magenta(R+B) 0xFF00FF
+    (255, 200, 0),   // 6: yellow(R+G)  0xFFC800
+    (255, 255, 255), // 7: white        0xFFFFFF
 ];
 
 /// Doppler forward color shift: R→G, G→B, B→R

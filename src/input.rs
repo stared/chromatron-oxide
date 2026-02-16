@@ -10,19 +10,19 @@ use crate::types::*;
 /// Returns: (grid_x, grid_y) where grid_y < 15 = main grid,
 /// grid_y == 15 = toolbox, grid_y == -2 = level number area
 pub fn pixel_to_grid(px: i32, py: i32) -> (i32, i32) {
-    // Main grid: origin (60, 30), cell size 24
+    // Main grid: cell center at (col*24+60, row*24+30)
     // Source: `iVar2 = param_2 / 0x18 + -2` and `iVar4 = (param_3 + 0x1e) / 0x18 + -2`
-    let gx = (px - GRID_ORIGIN_X + CELL_SIZE) / CELL_SIZE - 1;
-    let gy = (py - GRID_ORIGIN_Y + CELL_SIZE) / CELL_SIZE - 1;
+    let gx = px / CELL_SIZE - 2;
+    let gy = (py + GRID_ORIGIN_Y) / CELL_SIZE - 2;
 
     if gx >= 0 && gx < GRID_SIZE as i32 && gy >= 0 && gy < GRID_SIZE as i32 {
         return (gx, gy);
     }
 
-    // Toolbox: origin (460, 20), cell size 26, 6×4
-    // Source: `iVar2 = (param_2 + -0x1a6) / 0x1a + -1`
-    let tx = (px - TOOLBOX_ORIGIN_X + TOOLBOX_CELL_SIZE) / TOOLBOX_CELL_SIZE - 1;
-    let ty = (py - TOOLBOX_ORIGIN_Y + TOOLBOX_CELL_SIZE) / TOOLBOX_CELL_SIZE - 1;
+    // Toolbox: cell center at (col*26+460, row*26+20)
+    // Source: `iVar2 = (param_2 + -0x1a6) / 0x1a + -1` and `iVar1 = (param_3 + 0x12) / 0x1a + -1`
+    let tx = (px - 422) / TOOLBOX_CELL_SIZE - 1;
+    let ty = (py + 18) / TOOLBOX_CELL_SIZE - 1;
     if tx >= 0 && tx < TOOLBOX_COLS as i32 && ty >= 0 && ty < TOOLBOX_ROWS as i32 {
         return (tx + ty * TOOLBOX_COLS as i32, GRID_SIZE as i32); // toolbox index, row=15
     }
@@ -30,7 +30,7 @@ pub fn pixel_to_grid(px: i32, py: i32) -> (i32, i32) {
     // Level numbers: two rows at bottom
     // Source: `iVar2 = (param_2 + 10) / 0x14 + -1` and `iVar1 = (param_3 + -0x186) / 0x14 + -1`
     let lx = (px + 10) / 20 - 1;
-    let ly = (py - 390) / 20 - 1;
+    let ly = (py - 0x186) / 20 - 1;  // 0x186 = 390
     if lx >= 0 && lx < 25 && ly >= 0 && ly < 2 {
         let level = lx + ly * 25;
         return (level, -2); // level index, row=-2 indicates level number

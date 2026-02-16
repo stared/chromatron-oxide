@@ -52,13 +52,16 @@ lines.append("")
 
 # Palette data
 lines.append("/// Color palette (256 × RGB).")
-lines.append("/// Source: DAT_00415934, 256 entries × 3 bytes (R, G, B)")
+lines.append("/// Source: DAT_00415934, 256 entries × 3 bytes")
+lines.append("/// NOTE: Binary stores as BGR (see blit_sprite FUN_00402c20: [+0]=B, [+1]=G, [+2]=R).")
+lines.append("/// We swap B↔R here to store as proper RGB for SDL2.")
 lines.append("pub const PALETTE: [(u8, u8, u8); 256] = [")
 for i in range(0, 256, 8):
     entries = []
     for j in range(i, min(i+8, 256)):
-        r, g, b = palette[j]
-        entries.append(f"({r},{g},{b})")
+        # Binary stores [B, G, R] — swap to [R, G, B]
+        bgr0, g, bgr2 = palette[j]
+        entries.append(f"({bgr2},{g},{bgr0})")
     lines.append(f"    {', '.join(entries)},")
 lines.append("];")
 lines.append("")

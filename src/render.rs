@@ -1,5 +1,5 @@
 /// Rendering engine — SDL2-based port of the original GDI rendering.
-/// Source: FUN_00403690 (render_grid), FUN_004032f0 (render_all), FUN_00402c20 (blit_sprite)
+/// Source: FUN_00403690 (render_board), FUN_004032f0 (render_frame), FUN_00402c20 (blit_sprite)
 
 use sdl2::pixels::Color as SdlColor;
 use sdl2::rect::Rect;
@@ -40,11 +40,12 @@ pub fn decompress_sprite(rle: &[u8]) -> Vec<u8> {
 
 /// Get sprite index for a piece.
 /// Source: FUN_00401dc0 @ 0x401dc0 (get_sprite_index)
+/// NOTE: Empty cells return 0 (grid background tile), NOT -1/None!
 pub fn get_sprite_index(cell: &Cell) -> Option<usize> {
     let rot = cell.rotation as usize;
     let rot_mod4 = rot & 3;
     match cell.piece_type {
-        PieceType::Empty => None,
+        PieceType::Empty => Some(0),  // Sprite 0 = grid background tile
         PieceType::Wall => Some(1),
         PieceType::Laser => {
             match cell.color {
@@ -70,8 +71,6 @@ pub fn get_sprite_index(cell: &Cell) -> Option<usize> {
         PieceType::Splitter => Some(rot_mod4 + 0x28),
         PieceType::Tangler => Some(rot + 0x50),
         PieceType::Target => {
-            // Target sprite depends on color and whether satisfied
-            // Source: case 10 in get_sprite_index, complex mapping
             let base = match cell.color {
                 0 => 0x0c,  // Black target
                 1 => 0x06,  // Red
@@ -83,7 +82,6 @@ pub fn get_sprite_index(cell: &Cell) -> Option<usize> {
                 7 => 0x16,  // White
                 _ => return None,
             };
-            // Check if target is satisfied (lit up)
             let mut received: u8 = 0;
             for i in 0..8 {
                 received |= cell.beam_incoming[i];
@@ -97,275 +95,322 @@ pub fn get_sprite_index(cell: &Cell) -> Option<usize> {
 }
 
 /// Draw the entire game frame.
-/// Source: FUN_004032f0 (render_all) + FUN_00403690 (render_grid)
+/// Source: FUN_004032f0 (render_frame) + FUN_00403690 (render_board)
 pub fn render(canvas: &mut Canvas<Window>, game: &Game, sprites: &[Vec<u8>]) {
-    // Fill background with gray
+    // Step 1: Fill background with gray (0xA4 per channel)
     // Source: FUN_00403690 fills framebuffer with 0xa4
     canvas.set_draw_color(SdlColor::RGB(BG_COLOR.0, BG_COLOR.1, BG_COLOR.2));
     canvas.clear();
 
-    // Draw grid lines (subtle lighter lines)
-    canvas.set_draw_color(SdlColor::RGB(180, 180, 180));
-    for i in 0..=GRID_SIZE {
-        let x = GRID_ORIGIN_X + (i as i32) * CELL_SIZE;
-        let y = GRID_ORIGIN_Y + (i as i32) * CELL_SIZE;
-        canvas.draw_line(
-            (GRID_ORIGIN_X, y as i32),
-            (GRID_ORIGIN_X + GRID_SIZE as i32 * CELL_SIZE, y as i32),
-        ).ok();
-        canvas.draw_line(
-            (x as i32, GRID_ORIGIN_Y),
-            (x as i32, GRID_ORIGIN_Y + GRID_SIZE as i32 * CELL_SIZE),
-        ).ok();
-    }
-
-    // Draw all pieces on main grid
-    // Source: FUN_00403690 first loop, calls FUN_00402d10 for each cell
-    for y in 0..GRID_SIZE {
-        for x in 0..GRID_SIZE {
-            draw_piece_on_grid(canvas, &game.grid[y][x], x, y, sprites);
+    // Step 2: Draw all cells on main grid (first pass, threshold=0)
+    // Source: FUN_00403690 first loop, calls FUN_00402d10(col, row, 0)
+    // threshold=0 means ALL pixels are drawn, including grid background (sprite 0)
+    for row in 0..GRID_SIZE {
+        for col in 0..GRID_SIZE {
+            draw_cell(canvas, &game.grid[row][col], col, row, sprites, 0);
         }
     }
 
-    // Draw beam lines
-    // Source: FUN_00403690 second loop, calls FUN_00402dc0
-    for y in 0..GRID_SIZE {
-        for x in 0..GRID_SIZE {
-            draw_beams_at_cell(canvas, &game.grid[y][x], x, y);
+    // Step 3: Draw beams, then redraw pieces over beams with threshold=0x10
+    // Source: FUN_00403690 second loop
+    // threshold=0x10 means only pixels >= 16 are drawn (piece graphics only, no background)
+    for row in 0..GRID_SIZE {
+        for col in 0..GRID_SIZE {
+            let has_beams = draw_beams_at_cell(canvas, &game.grid[row][col], col, row);
+            if has_beams {
+                // Redraw piece without background so beams show through
+                // Source: FUN_00402d10(col, row, 0x10) when beams present
+                draw_cell(canvas, &game.grid[row][col], col, row, sprites, 0x10);
+            }
         }
     }
 
-    // Draw toolbox background
-    // Source: darker gray area for toolbox
-    canvas.set_draw_color(SdlColor::RGB(140, 140, 140));
-    for row in 0..TOOLBOX_ROWS {
-        for col in 0..TOOLBOX_COLS {
-            let tx = TOOLBOX_ORIGIN_X + (col as i32) * TOOLBOX_CELL_SIZE;
-            let ty = TOOLBOX_ORIGIN_Y + (row as i32) * TOOLBOX_CELL_SIZE;
-            canvas.fill_rect(Rect::new(tx, ty, TOOLBOX_CELL_SIZE as u32, TOOLBOX_CELL_SIZE as u32)).ok();
-        }
-    }
-
-    // Draw toolbox grid lines
-    canvas.set_draw_color(SdlColor::RGB(120, 120, 120));
-    for i in 0..=TOOLBOX_COLS {
-        let x = TOOLBOX_ORIGIN_X + (i as i32) * TOOLBOX_CELL_SIZE;
-        canvas.draw_line(
-            (x, TOOLBOX_ORIGIN_Y),
-            (x, TOOLBOX_ORIGIN_Y + TOOLBOX_ROWS as i32 * TOOLBOX_CELL_SIZE),
-        ).ok();
-    }
-    for i in 0..=TOOLBOX_ROWS {
-        let y = TOOLBOX_ORIGIN_Y + (i as i32) * TOOLBOX_CELL_SIZE;
-        canvas.draw_line(
-            (TOOLBOX_ORIGIN_X, y),
-            (TOOLBOX_ORIGIN_X + TOOLBOX_COLS as i32 * TOOLBOX_CELL_SIZE, y),
-        ).ok();
-    }
-
-    // Draw toolbox pieces
-    // Source: FUN_00403690 third loop draws pieces at row >= 0xf
-    for (i, cell) in game.toolbox.iter().enumerate() {
-        let col = i % TOOLBOX_COLS;
-        let row = i / TOOLBOX_COLS;
-        if row < TOOLBOX_ROWS {
-            let tx = TOOLBOX_ORIGIN_X + (col as i32) * TOOLBOX_CELL_SIZE + TOOLBOX_CELL_SIZE / 2;
-            let ty = TOOLBOX_ORIGIN_Y + (row as i32) * TOOLBOX_CELL_SIZE + TOOLBOX_CELL_SIZE / 2;
-            draw_sprite_at(canvas, cell, tx, ty, sprites);
+    // Step 4: Draw toolbox cells (24 cells at row 0xF, threshold=0)
+    // Source: FUN_00403690 third loop, FUN_00402d10(col, 0xF, 0) for col 0..23
+    // NOTE: Original draws all 24 slots, including empty ones (draws grid bg tile)
+    for i in 0..(TOOLBOX_COLS * TOOLBOX_ROWS) {
+        // Toolbox position: (col%6)*26+460, (col/6)*26+20
+        // Source: FUN_00402d10 toolbox branch
+        let display_col = i % TOOLBOX_COLS;
+        let display_row = i / TOOLBOX_COLS;
+        let cx = (display_col as i32) * TOOLBOX_CELL_SIZE + TOOLBOX_ORIGIN_X;
+        let cy = (display_row as i32) * TOOLBOX_CELL_SIZE + TOOLBOX_ORIGIN_Y;
+        if i < game.toolbox.len() {
+            draw_sprite_at(canvas, &game.toolbox[i], cx, cy, sprites, 0);
+        } else {
+            // Empty toolbox slot: draw grid background tile (sprite 0)
+            let empty = Cell::default();
+            draw_sprite_at(canvas, &empty, cx, cy, sprites, 0);
         }
     }
 
     // Draw dragged piece at cursor position
-    // Source: FUN_004032f0 draws selected piece at mouse pos during drag
+    // Source: FUN_00403650 (draw_drag_overlay)
     if let Some(dragged) = game.get_dragged_cell() {
-        draw_sprite_at(canvas, dragged, game.drag_pixel_x, game.drag_pixel_y, sprites);
+        draw_sprite_at(canvas, dragged, game.drag_pixel_x, game.drag_pixel_y, sprites, 0);
     }
 
-    // Draw level numbers at bottom
-    // Source: FUN_00403240 @ 0x403240
-    draw_level_numbers(canvas, game);
-
-    // Draw status text
-    // Source: FUN_004032f0 @ 0x4032f0
-    if game.win_flag {
-        draw_text_simple(canvas, "You win!", 330, 385);
-    } else if game.level_completed[game.current_level] {
-        draw_text_simple(canvas, "(completed)", 320, 375);
-    }
-
-    // Draw instruction text
-    let text = game.get_instruction_text();
-    if !text.is_empty() {
-        draw_wrapped_text(canvas, text, TOOLBOX_ORIGIN_X, 130, 170);
-    }
-
-    // Draw "Click on a level or press spacebar for next."
+    // Step 5: Draw level selector (if game_mode == 2)
+    // Source: FUN_00403690 calls FUN_00403240 when DAT_0041a800 == 2
     if game.game_state == GameState::Playing {
-        if game.win_flag {
-            draw_text_simple(canvas, "Click on a level or press spacebar for next.", 125, 450);
+        draw_level_numbers(canvas, game, sprites);
+    }
+
+    // Text overlays — drawn AFTER framebuffer blit in original (FUN_004032f0)
+    // Source: FUN_00403e50 calls with (text, left, top, right, bottom)
+    // All use DT_CENTER | DT_WORDBREAK | DT_NOPREFIX
+
+    // Status text: "You win!" or "(won)"
+    if game.win_flag {
+        // Source: FUN_00403e50("You win!", 0x14a, 0x181, 400, 0x1a4)
+        // rect: left=330, top=385, right=400, bottom=420
+        draw_text_centered(canvas, "You win!", 330, 385, 400, 420);
+    } else if game.level_completed[game.current_level] {
+        // Source: FUN_00403e50("(won)", 0x15e, 0x181, 400, 0x1a4)
+        // rect: left=350, top=385, right=400, bottom=420
+        draw_text_centered(canvas, "(won)", 350, 385, 400, 420);
+    }
+
+    // Instruction/help text or "Click on a level..."
+    // Source: rect (left=0x1c2(450), top=0x7d(125), right=0x26c(620), bottom=0x1db(475))
+    if game.game_state == GameState::Playing && game.win_flag {
+        draw_text_wrapped_centered(canvas, "Click on a level or press spacebar for next.",
+                                   450, 125, 620, 475);
+    } else {
+        let text = game.get_instruction_text();
+        if !text.is_empty() {
+            draw_text_wrapped_centered(canvas, text, 450, 125, 620, 475);
         }
     }
 
-    // Draw "freeware" and "silverspaceship.com"
-    draw_text_simple(canvas, "freeware", 0, 450);
-    draw_text_simple(canvas, "silverspaceship.com", 470, 450);
+    // "freeware" label
+    // Source: FUN_00403e50("freeware", 0, 0x1c2, 100, 0x1e0)
+    // rect: left=0, top=450, right=100, bottom=480
+    draw_text_centered(canvas, "freeware", 0, 450, 100, 480);
 
-    canvas.present();
+    // URL "silverspaceship.com"
+    // Source: FUN_00403e50(decoded_url, 0x1d6, 0x1c2, 0x280, 0x1e0)
+    // rect: left=470, top=450, right=640, bottom=480
+    draw_text_centered(canvas, "silverspaceship.com", 470, 450, 640, 480);
+
+    // NOTE: canvas.present() is called by the caller after optional framebuffer save
 }
 
-/// Draw a piece on the main grid.
-/// Source: FUN_00402d10 @ 0x402d10
-fn draw_piece_on_grid(canvas: &mut Canvas<Window>, cell: &Cell, x: usize, y: usize, sprites: &[Vec<u8>]) {
-    if cell.piece_type == PieceType::Empty {
-        return;
-    }
-    let px = GRID_ORIGIN_X + (x as i32) * CELL_SIZE;
-    let py = GRID_ORIGIN_Y + (y as i32) * CELL_SIZE;
-    draw_sprite_at(canvas, cell, px + CELL_SIZE / 2, py + CELL_SIZE / 2, sprites);
-}
-
-/// Draw a sprite centered at (cx, cy) using palette lookup.
-/// Source: FUN_00402c20 @ 0x402c20 (blit_sprite)
-fn draw_sprite_at(canvas: &mut Canvas<Window>, cell: &Cell, cx: i32, cy: i32, sprites: &[Vec<u8>]) {
+/// Draw a piece sprite centered at (cx, cy) with given transparency threshold.
+/// Source: FUN_00402be0 @ 0x402be0
+/// Calls blit_sprite at (cx-12, cy-12) with palette_offset=0 always.
+/// The threshold parameter controls which sprite pixels are drawn:
+///   threshold=0: draw ALL pixels (grid background + piece)
+///   threshold=0x10: draw only pixels >= 16 (piece graphics only)
+fn draw_sprite_at(canvas: &mut Canvas<Window>, cell: &Cell, cx: i32, cy: i32,
+                  sprites: &[Vec<u8>], transparency_threshold: usize) {
     let Some(idx) = get_sprite_index(cell) else { return };
-    if idx >= sprites.len() { return; }
-    let sprite = &sprites[idx];
-    let half = SPRITE_SIZE as i32 / 2;
+    blit_sprite(canvas, sprites, idx,
+                cx - SPRITE_SIZE as i32 / 2, cy - SPRITE_SIZE as i32 / 2,
+                SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE,
+                transparency_threshold, 0);
+}
 
-    for sy in 0..SPRITE_SIZE {
-        for sx in 0..SPRITE_SIZE {
-            let pixel_idx = sy * SPRITE_SIZE + sx;
+/// Draw a cell on the main grid.
+/// Source: FUN_00402d10 @ 0x402d10
+/// Main grid: center at (col*24+60, row*24+30)
+fn draw_cell(canvas: &mut Canvas<Window>, cell: &Cell, col: usize, row: usize,
+             sprites: &[Vec<u8>], transparency_threshold: usize) {
+    // Source: iVar1 = col * 0x18 + 0x3c, iVar2 = row * 0x18 + 0x1e
+    // These are the sprite CENTER coordinates
+    let cx = GRID_ORIGIN_X + (col as i32) * CELL_SIZE;
+    let cy = GRID_ORIGIN_Y + (row as i32) * CELL_SIZE;
+    draw_sprite_at(canvas, cell, cx, cy, sprites, transparency_threshold);
+}
+
+/// Blit a sprite region to the canvas.
+/// Source: FUN_00402c20 @ 0x402c20 (blit_sprite)
+///
+/// Parameters match the original:
+///   param_7 = transparency_threshold: skip pixels with palette index < threshold
+///   param_8 = palette_offset: added to pixel palette index for color lookup
+fn blit_sprite(
+    canvas: &mut Canvas<Window>, sprites: &[Vec<u8>],
+    sprite_idx: usize, dst_x: i32, dst_y: i32,
+    draw_w: usize, draw_h: usize, src_stride: usize,
+    transparency_threshold: usize, palette_offset: usize,
+) {
+    if sprite_idx >= sprites.len() { return; }
+    let sprite = &sprites[sprite_idx];
+
+    for sy in 0..draw_h {
+        for sx in 0..draw_w {
+            let pixel_idx = sy * src_stride + sx;
             if pixel_idx >= sprite.len() { continue; }
-            let pal_idx = sprite[pixel_idx] as usize;
-            // Transparency: skip palette indices below threshold (0x0E = 14)
-            // Source: FUN_00402c20 param_7 threshold check: `if (param_7 <= pixel_value)`
-            if pal_idx < 14 {
+            let raw_pal = sprite[pixel_idx] as usize;
+            // Source: `if (param_7 <= (int)(uint)*(byte *)(iVar3 + param_3))`
+            if raw_pal < transparency_threshold {
                 continue;
             }
+            let pal_idx = (raw_pal + palette_offset) & 0xFF;
             let (r, g, b) = PALETTE[pal_idx];
             canvas.set_draw_color(SdlColor::RGB(r, g, b));
-            canvas.draw_point((cx - half + sx as i32, cy - half + sy as i32)).ok();
+            canvas.draw_point((dst_x + sx as i32, dst_y + sy as i32)).ok();
         }
     }
 }
 
-/// Draw beam lines at a cell.
+/// Draw beam lines at a cell. Returns true if any beams were drawn.
 /// Source: FUN_00402dc0 @ 0x402dc0
 ///
-/// Each beam has two segments per cell: from center toward the entry point
-/// (where the beam came from) and from center toward the exit point.
-fn draw_beams_at_cell(canvas: &mut Canvas<Window>, cell: &Cell, x: usize, y: usize) {
-    let cx = GRID_ORIGIN_X + (x as i32) * CELL_SIZE + CELL_SIZE / 2;
-    let cy = GRID_ORIGIN_Y + (y as i32) * CELL_SIZE + CELL_SIZE / 2;
-    let half = CELL_SIZE / 2 + 1;
+/// For each of 8 directions, combines beam_incoming[(d+4)&7] and beam_outgoing[d]
+/// via bitwise OR to get the total beam color, then draws a single line from cell
+/// center to 13px in that direction.
+fn draw_beams_at_cell(canvas: &mut Canvas<Window>, cell: &Cell, col: usize, row: usize) -> bool {
+    // Cell center coordinates
+    // Source: iVar3 = col*0x18+0x3c, iVar4 = row*0x18+0x1e
+    let cx = GRID_ORIGIN_X + (col as i32) * CELL_SIZE;
+    let cy = GRID_ORIGIN_Y + (row as i32) * CELL_SIZE;
+    let extent: i32 = CELL_SIZE / 2 + 1; // 13 pixels
 
-    for dir in 0..8u8 {
-        let d = dir as usize & 7;
-        let opp = ((dir + 4) & 7) as usize;
+    let mut any_beams = false;
 
-        // Outgoing: draw from center toward exit direction
-        if cell.beam_outgoing[d] != 0 {
-            let (r, g, b) = BEAM_COLORS[cell.beam_outgoing[d] as usize & 7];
-            canvas.set_draw_color(SdlColor::RGB(r, g, b));
-            let ex = cx + Direction::DX[d] * half;
-            let ey = cy + Direction::DY[d] * half;
-            canvas.draw_line((cx, cy), (ex, ey)).ok();
+    for d in 0..8usize {
+        let opp = (d + 4) & 7;
+        // Source: beam_incoming[(direction-4)&7] | beam_outgoing[direction]
+        // (direction-4)&7 == (direction+4)&7 since -4 ≡ 4 mod 8
+        let color = cell.beam_incoming[opp] | cell.beam_outgoing[d];
+        if color == 0 {
+            continue;
         }
+        any_beams = true;
 
-        // Incoming: beam traveling in direction `dir` entered this cell,
-        // so it came from the opposite side — draw from center toward entry point
-        if cell.beam_incoming[d] != 0 {
-            let (r, g, b) = BEAM_COLORS[cell.beam_incoming[d] as usize & 7];
-            canvas.set_draw_color(SdlColor::RGB(r, g, b));
-            let ex = cx + Direction::DX[opp] * half;
-            let ey = cy + Direction::DY[opp] * half;
-            canvas.draw_line((cx, cy), (ex, ey)).ok();
-        }
+        let (r, g, b) = BEAM_COLORS[color as usize & 7];
+        canvas.set_draw_color(SdlColor::RGB(r, g, b));
+        let ex = cx + Direction::DX[d] * extent;
+        let ey = cy + Direction::DY[d] * extent;
+        canvas.draw_line((cx, cy), (ex, ey)).ok();
     }
+
+    any_beams
 }
 
-/// Draw level numbers at the bottom of the screen.
-/// Source: FUN_00403240 @ 0x403240
-fn draw_level_numbers(canvas: &mut Canvas<Window>, game: &Game) {
-    // Two rows of 25, starting at (10, 410) with 20px spacing
+/// Digit sprite indices: sprites 118-127 correspond to digits '0'-'9'.
+/// Source: DAT_00418238 = digit_sprite_ptrs[10], offset 0x1D8 from sprite_data_ptrs
+const DIGIT_SPRITE_BASE: usize = 118;
+
+/// Digit sprite rendering constants.
+/// Source: FUN_004031a0 @ 0x4031a0 (draw_number_string)
+const DIGIT_W: usize = 12;
+const DIGIT_H: usize = 12;
+const DIGIT_ADVANCE: i32 = 8;
+const DIGIT_SPACE_ADVANCE: i32 = 4;
+
+/// Draw level numbers at the bottom of the screen using sprite-based digits.
+/// Source: FUN_00403240 @ 0x403240 (draw_level_selector)
+fn draw_level_numbers(canvas: &mut Canvas<Window>, game: &Game, sprites: &[Vec<u8>]) {
+    // Two rows of 25, starting at (10, 0x19a) with 0x14 (20px) spacing
     // Source: `(iVar1 % 0x19) * 0x14 + 10` and `(iVar1 / 0x19) * 0x14 + 0x19a`
     for i in 0..NUM_LEVELS {
         let col = i % 25;
         let row = i / 25;
         let x = (col as i32) * 20 + 10;
-        let y = (row as i32) * 20 + 410;
+        let y = (row as i32) * 20 + 410; // 0x19a = 410
 
-        // Color based on level status
-        // Source: FUN_00403200 @ 0x403200
-        let color = if i == game.current_level {
-            SdlColor::RGB(255, 255, 255) // Current level: white
+        // Palette offset based on level status
+        // Source: FUN_00403200 @ 0x403200 (get_level_display_color)
+        let palette_offset: usize = if i == game.current_level {
+            0x00  // Current level: default palette (white/gray)
         } else if game.level_completed[i] {
-            SdlColor::RGB(84, 84, 252)   // Completed: blue
+            0x48  // Completed: blue tint
         } else if game.level_accessible[i] {
-            SdlColor::RGB(0, 200, 0)     // Accessible: green
+            0x30  // Accessible: green tint
         } else {
-            SdlColor::RGB(168, 0, 0)     // Inaccessible: red
+            0x10  // Inaccessible: red tint
         };
 
-        // Render level number using bitmap font
-        canvas.set_draw_color(color);
-        let num_str = format!("{}", i + 1);
+        // Format as 2-digit number with leading space
+        let num_str = format!("{:2}", i + 1);
         let mut cx = x;
         for ch in num_str.chars() {
-            if let Some(glyph) = font::get_char(ch) {
-                for row in 0..7 {
-                    let bits = glyph[row];
-                    for col in 0..5 {
-                        if bits & (0x10 >> col) != 0 {
-                            canvas.draw_point((cx + col, y + row as i32)).ok();
-                        }
-                    }
-                }
+            if ch >= '0' && ch <= '9' {
+                let digit = (ch as usize) - ('0' as usize);
+                // Source: FUN_004031a0 calls blit_sprite with threshold=0x0E, palette_offset=color
+                blit_sprite(canvas, sprites, DIGIT_SPRITE_BASE + digit,
+                           cx, y, DIGIT_W, DIGIT_H, SPRITE_SIZE, 0x0E, palette_offset);
+                cx += DIGIT_ADVANCE;
+            } else {
+                cx += DIGIT_SPACE_ADVANCE;
             }
-            cx += font::CHAR_W;
         }
     }
 }
 
+/// Text rendering scale factor.
+/// Original uses DrawTextA with Windows system font (~8px wide, ~13px tall).
+/// Our 5×7 bitmap at 1× = 6×9 cell size. Closest match to original proportions.
+const TEXT_SCALE: i32 = 1;
+const TEXT_CHAR_W: i32 = font::CHAR_W * TEXT_SCALE;  // 6
+const TEXT_CHAR_H: i32 = font::CHAR_H * TEXT_SCALE;  // 9
+
 /// Draw text using the embedded bitmap font.
-/// Source: replaces DrawTextA from original Win32 GDI rendering (FUN_00403e50)
-fn draw_text_simple(canvas: &mut Canvas<Window>, text: &str, x: i32, y: i32) {
+fn draw_text_at(canvas: &mut Canvas<Window>, text: &str, x: i32, y: i32) {
     canvas.set_draw_color(SdlColor::RGB(0, 0, 0));
     let mut cx = x;
     for ch in text.chars() {
         if let Some(glyph) = font::get_char(ch) {
             for row in 0..7 {
                 let bits = glyph[row];
-                for col in 0..5 {
+                for col in 0..5i32 {
                     if bits & (0x10 >> col) != 0 {
-                        canvas.draw_point((cx + col, y + row as i32)).ok();
+                        if TEXT_SCALE == 1 {
+                            canvas.draw_point((cx + col, y + row as i32)).ok();
+                        } else {
+                            let px = cx + col * TEXT_SCALE;
+                            let py = y + row as i32 * TEXT_SCALE;
+                            canvas.fill_rect(Rect::new(px, py,
+                                TEXT_SCALE as u32, TEXT_SCALE as u32)).ok();
+                        }
                     }
                 }
             }
         }
-        cx += font::CHAR_W;
+        cx += TEXT_CHAR_W;
     }
 }
 
-/// Draw wrapped text in a bounding box.
-/// Source: replaces DrawTextA with DT_WORDBREAK flag
-fn draw_wrapped_text(canvas: &mut Canvas<Window>, text: &str, x: i32, y: i32, max_width: i32) {
-    let chars_per_line = (max_width / font::CHAR_W) as usize;
+/// Draw text centered horizontally within a rectangle.
+/// Source: replaces DrawTextA with DT_CENTER (FUN_00403e50)
+fn draw_text_centered(canvas: &mut Canvas<Window>, text: &str,
+                      left: i32, top: i32, right: i32, _bottom: i32) {
+    let text_width = text.len() as i32 * TEXT_CHAR_W;
+    let rect_width = right - left;
+    let x = left + (rect_width - text_width) / 2;
+    draw_text_at(canvas, text, x.max(left), top);
+}
 
-    let mut cy = y;
+/// Draw text wrapped and centered within a rectangle.
+/// Source: replaces DrawTextA with DT_CENTER | DT_WORDBREAK (FUN_00403e50)
+fn draw_text_wrapped_centered(canvas: &mut Canvas<Window>, text: &str,
+                               left: i32, top: i32, right: i32, bottom: i32) {
+    let rect_width = right - left;
+    let chars_per_line = (rect_width / TEXT_CHAR_W).max(1) as usize;
+
+    let mut cy = top;
     let words: Vec<&str> = text.split_whitespace().collect();
     let mut line = String::new();
 
     for word in words {
         if !line.is_empty() && line.len() + 1 + word.len() > chars_per_line {
-            draw_text_simple(canvas, &line, x, cy);
-            cy += font::CHAR_H;
+            // Center this line
+            let line_width = line.len() as i32 * TEXT_CHAR_W;
+            let x = left + (rect_width - line_width) / 2;
+            draw_text_at(canvas, &line, x.max(left), cy);
+            cy += TEXT_CHAR_H;
             line.clear();
+            if cy + TEXT_CHAR_H > bottom { break; }
         }
         if !line.is_empty() { line.push(' '); }
         line.push_str(word);
     }
-    if !line.is_empty() {
-        draw_text_simple(canvas, &line, x, cy);
+    if !line.is_empty() && cy + TEXT_CHAR_H <= bottom {
+        let line_width = line.len() as i32 * TEXT_CHAR_W;
+        let x = left + (rect_width - line_width) / 2;
+        draw_text_at(canvas, &line, x.max(left), cy);
     }
 }

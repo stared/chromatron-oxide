@@ -13,6 +13,8 @@ mod font;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::pixels::PixelFormatEnum;
+use sdl2::rect::Rect;
 
 use crate::game::Game;
 use crate::render::decompress_sprite;
@@ -44,6 +46,12 @@ fn main() {
     // Source: FUN_00402b90 @ 0x402b90 (game_init)
     let mut game = Game::new();
 
+    // Initial render + save framebuffer for comparison
+    render::render(&mut canvas, &game, &sprites);
+    save_framebuffer(&canvas);
+    canvas.present();
+    game.dirty = false;
+
     // Main loop
     // Source: WinMain message loop: GetMessage → TranslateMessage → DispatchMessage
     'running: loop {
@@ -54,6 +62,13 @@ fn main() {
                 // Keyboard events
                 // Source: WndProc WM_CHAR (0x102) → FUN_00402a80
                 Event::KeyDown { keycode: Some(key), keymod, .. } => {
+                    // F12: re-render + save raw 640×480 framebuffer
+                    if key == Keycode::F12 {
+                        render::render(&mut canvas, &game, &sprites);
+                        save_framebuffer(&canvas);
+                        canvas.present();
+                        continue;
+                    }
                     let code = match key {
                         Keycode::Escape => 0x1b,
                         Keycode::Space => 0x20,
@@ -105,6 +120,7 @@ fn main() {
         // Render if dirty
         if game.dirty {
             render::render(&mut canvas, &game, &sprites);
+            canvas.present();
             game.dirty = false;
         }
 
@@ -116,4 +132,66 @@ fn main() {
     // Source: WinMain post-loop: FUN_00403730 (save_on_exit)
     game.save_grid_state();
     // TODO: write save file
+}
+
+/// Save the current canvas framebuffer as a 640×480 PNG.
+fn save_framebuffer(canvas: &sdl2::render::Canvas<sdl2::video::Window>) {
+    let (w, h) = (WINDOW_WIDTH, WINDOW_HEIGHT);
+    let pitch = w as usize * 3;
+    let mut pixels = vec![0u8; pitch * h as usize];
+
+    canvas.read_pixels(
+        Rect::new(0, 0, w, h),
+        PixelFormatEnum::RGB24,
+    ).map(|data| {
+        pixels = data;
+    }).ok();
+
+    // Write as BMP (simple, no extra dependency)
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let path = format!("screenshots/framebuffer_{}.bmp", timestamp);
+
+    // BMP header (54 bytes) + pixel data
+    let file_size = 54 + pixels.len() as u32;
+    let mut bmp = Vec::with_capacity(file_size as usize);
+
+    // BMP file header (14 bytes)
+    bmp.extend_from_slice(b"BM");
+    bmp.extend_from_slice(&file_size.to_le_bytes());
+    bmp.extend_from_slice(&[0u8; 4]); // reserved
+    bmp.extend_from_slice(&54u32.to_le_bytes()); // offset to pixel data
+
+    // DIB header (40 bytes, BITMAPINFOHEADER)
+    bmp.extend_from_slice(&40u32.to_le_bytes()); // header size
+    bmp.extend_from_slice(&(w as i32).to_le_bytes()); // width
+    bmp.extend_from_slice(&(-(h as i32)).to_le_bytes()); // height (negative = top-down)
+    bmp.extend_from_slice(&1u16.to_le_bytes()); // planes
+    bmp.extend_from_slice(&24u16.to_le_bytes()); // bits per pixel
+    bmp.extend_from_slice(&[0u8; 24]); // compression through to color_important (all zeros)
+
+    // Pixel data (BMP stores BGR, we have RGB — swap)
+    for row in 0..h as usize {
+        for col in 0..w as usize {
+            let i = row * pitch + col * 3;
+            if i + 2 < pixels.len() {
+                bmp.push(pixels[i + 2]); // B
+                bmp.push(pixels[i + 1]); // G
+                bmp.push(pixels[i]);     // R
+            }
+        }
+        // BMP rows must be 4-byte aligned
+        let padding = (4 - (w as usize * 3) % 4) % 4;
+        for _ in 0..padding {
+            bmp.push(0);
+        }
+    }
+
+    std::fs::create_dir_all("screenshots").ok();
+    match std::fs::write(&path, &bmp) {
+        Ok(_) => eprintln!("Framebuffer saved: {}", path),
+        Err(e) => eprintln!("Failed to save framebuffer: {}", e),
+    }
 }
