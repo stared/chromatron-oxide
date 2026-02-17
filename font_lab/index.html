@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chromatron Font Lab</title>
+<style>
+/* CDN fonts */
+@import url('https://fonts.cdnfonts.com/css/w95fa');
+
+/* Local fonts */
+@font-face {
+  font-family: 'W95FA-Local';
+  src: url('fonts/W95font.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Geneva-Local';
+  src: url('fonts/Geneva.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'MS-Sans-Serif-Local';
+  src: url('fonts/ms_sans_serif.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #2a2a2a;
+  color: #eee;
+  padding: 20px;
+}
+
+h1 { margin-bottom: 10px; font-size: 1.4em; }
+h2 { margin: 20px 0 8px; font-size: 1.1em; color: #aaa; }
+
+.controls {
+  background: #333;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9em;
+}
+.controls select, .controls input {
+  background: #444;
+  color: #eee;
+  border: 1px solid #666;
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.comparison {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.panel {
+  background: #333;
+  border-radius: 6px;
+  padding: 12px;
+  display: inline-block;
+}
+.panel-title {
+  font-size: 0.85em;
+  color: #999;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* The actual text rendering box — 170px wide (matches game instruction rect width) */
+.text-box {
+  width: 170px;
+  background: #A4A4A4;
+  color: #000000;
+  padding: 0;
+  /* Default: no anti-aliasing for bitmap-like rendering */
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  font-smooth: never;
+  text-rendering: optimizeSpeed;
+  image-rendering: pixelated;
+}
+
+.text-box.aa-on {
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  font-smooth: auto;
+  text-rendering: auto;
+}
+
+.reference-img {
+  image-rendering: pixelated;
+  display: block;
+}
+
+/* Bottom bar samples */
+.bottom-bar {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+}
+.bottom-sample {
+  background: #A4A4A4;
+  color: #000;
+  padding: 2px 6px;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  font-smooth: never;
+  text-rendering: optimizeSpeed;
+}
+.bottom-sample.aa-on {
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  font-smooth: auto;
+  text-rendering: auto;
+}
+
+.level-selector {
+  margin-bottom: 16px;
+}
+.level-selector button {
+  background: #444;
+  color: #eee;
+  border: 1px solid #666;
+  padding: 4px 10px;
+  margin-right: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.level-selector button.active {
+  background: #668;
+  border-color: #99b;
+}
+</style>
+</head>
+<body>
+
+<h1>Chromatron Font Lab</h1>
+<p style="color:#888; margin-bottom:16px;">Compare font candidates against the Windows reference screenshot. Instruction text rect: (450,125)→(620,475) = 170×350px.</p>
+
+<div class="controls">
+  <label>
+    Font size:
+    <select id="fontSize">
+      <option value="8pt">8pt</option>
+      <option value="9pt">9pt</option>
+      <option value="10pt">10pt</option>
+      <option value="11pt" selected>11pt</option>
+      <option value="12pt">12pt</option>
+      <option value="13px">13px</option>
+      <option value="14px">14px</option>
+      <option value="16px">16px</option>
+    </select>
+  </label>
+  <label>
+    <input type="checkbox" id="antiAlias">
+    Anti-aliasing
+  </label>
+  <label>
+    Line height:
+    <select id="lineHeight">
+      <option value="normal">normal</option>
+      <option value="1.0">1.0</option>
+      <option value="1.1">1.1</option>
+      <option value="1.2" selected>1.2</option>
+      <option value="1.3">1.3</option>
+      <option value="1.4">1.4</option>
+      <option value="1.5">1.5</option>
+    </select>
+  </label>
+  <label>
+    Letter spacing:
+    <select id="letterSpacing">
+      <option value="-1px">-1px</option>
+      <option value="0px" selected>0px</option>
+      <option value="0.5px">0.5px</option>
+      <option value="1px">1px</option>
+    </select>
+  </label>
+  <label>
+    Word spacing:
+    <select id="wordSpacing">
+      <option value="-1px">-1px</option>
+      <option value="0px" selected>0px</option>
+      <option value="1px">1px</option>
+      <option value="2px">2px</option>
+    </select>
+  </label>
+</div>
+
+<div class="level-selector" id="levelSelector"></div>
+
+<div class="comparison" id="comparisonGrid"></div>
+
+<h2>Bottom Bar Samples</h2>
+<div id="bottomBarGrid"></div>
+
+<script>
+// Font configurations to compare
+const FONTS = [
+  { name: 'Reference', isReference: true },
+  { name: 'W95FA (local)', family: "'W95FA-Local'" },
+  { name: 'W95FA (CDN)', family: "'w95fa'" },
+  { name: 'Geneva (local)', family: "'Geneva-Local'" },
+  { name: 'MS Sans Serif (system)', family: "'MS Sans Serif', 'Microsoft Sans Serif'" },
+  { name: 'Arial', family: 'Arial, sans-serif' },
+  { name: 'Tahoma', family: 'Tahoma, sans-serif' },
+];
+
+// Only levels that have matching reference screenshots
+const LEVEL_TEXTS = [
+  {
+    label: 'Level 1',
+    text: 'Drag the REFLECTOR in the toolbox above onto the board and place it in front of the laser beam. Click on it to rotate it. Position the mirror so that the laser beam is reflected into the pinwheel.',
+    refCrop: 'reference_crop_level1.png',
+  },
+  {
+    label: 'Level 4 (splitter)',
+    text: 'If a laser hits a SPLITTER at the correct angle, it bounces off at an angle and also goes straight through. If it hits head on, it just goes through.',
+    refCrop: 'reference_crop_level4_splitter.png',
+  },
+  {
+    label: 'Colors (long)',
+    text: 'Some pinwheels require multiple lasers to light them up. You get magenta from red and blue. Yellow is formed by green plus red. Combining green and blue yields a color known variously as cyan, teal, or aqua.',
+    refCrop: 'reference_crop_level3_colors.png',
+  },
+];
+
+let currentLevel = 0;
+
+function getSettings() {
+  return {
+    fontSize: document.getElementById('fontSize').value,
+    antiAlias: document.getElementById('antiAlias').checked,
+    lineHeight: document.getElementById('lineHeight').value,
+    letterSpacing: document.getElementById('letterSpacing').value,
+    wordSpacing: document.getElementById('wordSpacing').value,
+  };
+}
+
+function applyToBox(box, settings) {
+  box.style.fontSize = settings.fontSize;
+  box.style.lineHeight = settings.lineHeight;
+  box.style.letterSpacing = settings.letterSpacing;
+  box.style.wordSpacing = settings.wordSpacing;
+  if (settings.antiAlias) {
+    box.classList.add('aa-on');
+  } else {
+    box.classList.remove('aa-on');
+  }
+}
+
+function render() {
+  const settings = getSettings();
+  const text = LEVEL_TEXTS[currentLevel].text;
+  const grid = document.getElementById('comparisonGrid');
+  grid.innerHTML = '';
+
+  for (const font of FONTS) {
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+
+    const title = document.createElement('div');
+    title.className = 'panel-title';
+    title.textContent = font.name;
+    panel.appendChild(title);
+
+    if (font.isReference) {
+      const refCrop = LEVEL_TEXTS[currentLevel].refCrop;
+      const img = document.createElement('img');
+      img.src = refCrop;
+      img.className = 'reference-img';
+      img.width = 170;
+      img.alt = 'Windows reference';
+      img.onerror = () => { img.alt = refCrop + ' not found — run: uv run scripts/crop_reference_text.py'; img.style.background = '#666'; img.style.width = '170px'; img.style.height = '100px'; };
+      panel.appendChild(img);
+    } else {
+      const box = document.createElement('div');
+      box.className = 'text-box';
+      box.style.fontFamily = font.family;
+      box.style.wordWrap = 'break-word';
+      box.textContent = text;
+      applyToBox(box, settings);
+      panel.appendChild(box);
+    }
+
+    grid.appendChild(panel);
+  }
+
+  // Bottom bar
+  const bbGrid = document.getElementById('bottomBarGrid');
+  bbGrid.innerHTML = '';
+  for (const font of FONTS) {
+    if (font.isReference) continue;
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.style.display = 'inline-block';
+    panel.style.marginRight = '12px';
+    panel.style.marginBottom = '12px';
+
+    const title = document.createElement('div');
+    title.className = 'panel-title';
+    title.textContent = font.name;
+    panel.appendChild(title);
+
+    const bar = document.createElement('div');
+    bar.className = 'bottom-bar';
+
+    const fw = document.createElement('span');
+    fw.className = 'bottom-sample';
+    fw.style.fontFamily = font.family;
+    fw.textContent = 'freeware';
+    applyToBox(fw, settings);
+
+    const url = document.createElement('span');
+    url.className = 'bottom-sample';
+    url.style.fontFamily = font.family;
+    url.textContent = 'silverspaceship.com';
+    applyToBox(url, settings);
+
+    bar.appendChild(fw);
+    bar.appendChild(url);
+    panel.appendChild(bar);
+    bbGrid.appendChild(panel);
+  }
+}
+
+function renderLevelSelector() {
+  const sel = document.getElementById('levelSelector');
+  sel.innerHTML = '';
+  LEVEL_TEXTS.forEach((level, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = level.label;
+    btn.className = i === currentLevel ? 'active' : '';
+    btn.onclick = () => { currentLevel = i; renderLevelSelector(); render(); };
+    sel.appendChild(btn);
+  });
+}
+
+// Event listeners
+document.getElementById('fontSize').addEventListener('change', render);
+document.getElementById('antiAlias').addEventListener('change', render);
+document.getElementById('lineHeight').addEventListener('change', render);
+document.getElementById('letterSpacing').addEventListener('change', render);
+document.getElementById('wordSpacing').addEventListener('change', render);
+
+// Initial render
+renderLevelSelector();
+render();
+</script>
+</body>
+</html>
