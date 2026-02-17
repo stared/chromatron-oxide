@@ -35,6 +35,21 @@ fn main() {
     let mut canvas = window.into_canvas().build().expect("Failed to create canvas");
     let mut event_pump = sdl_context.event_pump().expect("Failed to get event pump");
 
+    // Initialize SDL2_ttf and load system font
+    // Source: Win32 uses default SYSTEM_FONT (MS Sans Serif 8pt/13px bitmap)
+    // sserife.fon = Wine's pre-built MS Sans Serif bitmap font (LGPL 2.1)
+    // FreeType (used by SDL2_ttf) supports loading .fon files natively.
+    let ttf_context = sdl2::ttf::init().expect("Failed to init SDL2_ttf");
+    let mut font = ttf_context.load_font("assets/fonts/sserife.fon", 13)
+        .unwrap_or_else(|e| {
+            eprintln!("sserife.fon failed ({e}), falling back to Geneva.ttf");
+            let mut f = ttf_context.load_font("assets/fonts/Geneva.ttf", 13)
+                .expect("Failed to load assets/fonts/Geneva.ttf");
+            f.set_hinting(sdl2::ttf::Hinting::Mono);
+            f
+        });
+    font.set_kerning(false);
+
     // Decompress all sprites
     // Source: FUN_00403740 @ 0x403740 (decompress_sprites), called from FUN_00402b90 (game_init)
     let sprites: Vec<Vec<u8>> = levels::SPRITES_RLE
@@ -47,7 +62,7 @@ fn main() {
     let mut game = Game::new();
 
     // Initial render + save framebuffer for comparison
-    render::render(&mut canvas, &game, &sprites);
+    render::render(&mut canvas, &game, &sprites, &font);
     save_framebuffer(&canvas);
     canvas.present();
     game.dirty = false;
@@ -64,7 +79,7 @@ fn main() {
                 Event::KeyDown { keycode: Some(key), keymod, .. } => {
                     // F12: re-render + save raw 640×480 framebuffer
                     if key == Keycode::F12 {
-                        render::render(&mut canvas, &game, &sprites);
+                        render::render(&mut canvas, &game, &sprites, &font);
                         save_framebuffer(&canvas);
                         canvas.present();
                         continue;
@@ -119,7 +134,7 @@ fn main() {
 
         // Render if dirty
         if game.dirty {
-            render::render(&mut canvas, &game, &sprites);
+            render::render(&mut canvas, &game, &sprites, &font);
             canvas.present();
             game.dirty = false;
         }
