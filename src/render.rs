@@ -2,14 +2,31 @@
 /// Source: FUN_00403690 (render_board), FUN_004032f0 (render_frame), FUN_00402c20 (blit_sprite)
 
 use sdl2::pixels::Color as SdlColor;
-use sdl2::rect::Rect;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
-use crate::font;
 use crate::game::Game;
 use crate::levels::PALETTE;
 use crate::types::*;
+
+/// System font for text rendering (loaded at runtime via fontdue).
+/// Source: Mac PPC uses kThemeSystemFont (Geneva 13px); Win32 uses SYSTEM_FONT from DC.
+static SYSTEM_FONT: std::sync::OnceLock<fontdue::Font> = std::sync::OnceLock::new();
+
+/// Font pixel size matching the original's SYSTEM_FONT / kThemeSystemFont (~13px).
+const SYS_FONT_PX: f32 = 13.0;
+
+fn get_system_font() -> &'static fontdue::Font {
+    SYSTEM_FONT.get_or_init(|| {
+        let data = std::fs::read("assets/fonts/Geneva.ttf")
+            .expect("assets/fonts/Geneva.ttf not found — required for text rendering");
+        fontdue::Font::from_bytes(data, fontdue::FontSettings {
+            collection_index: 0,
+            scale: SYS_FONT_PX,
+            ..fontdue::FontSettings::default()
+        }).expect("Failed to parse Geneva.ttf")
+    })
+}
 
 /// Decompress a single RLE sprite to 24×24 indexed pixels.
 /// Source: FUN_00403740 @ 0x403740
@@ -158,40 +175,47 @@ pub fn render(canvas: &mut Canvas<Window>, game: &Game, sprites: &[Vec<u8>]) {
 
     // Text overlays — drawn AFTER framebuffer blit in original (FUN_004032f0)
     // Source: FUN_00403e50 calls with (text, left, top, right, bottom)
-    // All use DT_CENTER | DT_WORDBREAK | DT_NOPREFIX
+    // Flags: 0x810 = DT_WORDBREAK | DT_NOPREFIX — LEFT-aligned (no DT_CENTER)
 
     // Status text: "You win!" or "(won)"
     if game.win_flag {
-        // Source: FUN_00403e50("You win!", 0x14a, 0x181, 400, 0x1a4)
+        // Source: FUN_00403e50("You win!", 0x14a, 0x181, 0x190, 0x1a4)
         // rect: left=330, top=385, right=400, bottom=420
-        draw_text_centered(canvas, "You win!", 330, 385, 400, 420);
+        draw_text_in_rect(canvas, "You win!", 330, 385, 400, 420);
     } else if game.level_completed[game.current_level] {
-        // Source: FUN_00403e50("(won)", 0x15e, 0x181, 400, 0x1a4)
+        // Source: FUN_00403e50("(won)", 0x15e, 0x181, 0x190, 0x1a4)
         // rect: left=350, top=385, right=400, bottom=420
-        draw_text_centered(canvas, "(won)", 350, 385, 400, 420);
+        draw_text_in_rect(canvas, "(won)", 350, 385, 400, 420);
     }
 
     // Instruction/help text or "Click on a level..."
     // Source: rect (left=0x1c2(450), top=0x7d(125), right=0x26c(620), bottom=0x1db(475))
     if game.game_state == GameState::Playing && game.win_flag {
-        draw_text_wrapped_centered(canvas, "Click on a level or press spacebar for next.",
-                                   450, 125, 620, 475);
+        draw_text_wrapped_in_rect(canvas, "Click on a level or press spacebar for next.",
+                                  450, 125, 620, 475);
     } else {
         let text = game.get_instruction_text();
         if !text.is_empty() {
-            draw_text_wrapped_centered(canvas, text, 450, 125, 620, 475);
+            draw_text_wrapped_in_rect(canvas, text, 450, 125, 620, 475);
         }
     }
 
     // "freeware" label
-    // Source: FUN_00403e50("freeware", 0, 0x1c2, 100, 0x1e0)
+    // Source: FUN_00403e50("freeware", 0, 0x1c2, 0x64, 0x1e0)
     // rect: left=0, top=450, right=100, bottom=480
-    draw_text_centered(canvas, "freeware", 0, 450, 100, 480);
+    draw_text_in_rect(canvas, "freeware", 0, 450, 100, 480);
+
+    // "more levels @" — shown for levels > 39 on even levels or level 49
+    // Source: conditional on level>39 && (level%2==0 || level==49)
+    // rect: left=350, top=450, right=465, bottom=480
+    if game.current_level > 39 && (game.current_level % 2 == 0 || game.current_level == 49) {
+        draw_text_in_rect(canvas, "more levels @", 350, 450, 465, 480);
+    }
 
     // URL "silverspaceship.com"
     // Source: FUN_00403e50(decoded_url, 0x1d6, 0x1c2, 0x280, 0x1e0)
     // rect: left=470, top=450, right=640, bottom=480
-    draw_text_centered(canvas, "silverspaceship.com", 470, 450, 640, 480);
+    draw_text_in_rect(canvas, "silverspaceship.com", 470, 450, 640, 480);
 
     // NOTE: canvas.present() is called by the caller after optional framebuffer save
 }
@@ -341,76 +365,78 @@ fn draw_level_numbers(canvas: &mut Canvas<Window>, game: &Game, sprites: &[Vec<u
     }
 }
 
-/// Text rendering scale factor.
-/// Original uses DrawTextA with Windows system font (~8px wide, ~13px tall).
-/// Our 5×7 bitmap at 1× = 6×9 cell size. Closest match to original proportions.
-const TEXT_SCALE: i32 = 1;
-const TEXT_CHAR_W: i32 = font::CHAR_W * TEXT_SCALE;  // 6
-const TEXT_CHAR_H: i32 = font::CHAR_H * TEXT_SCALE;  // 9
-
-/// Draw text using the embedded bitmap font.
-fn draw_text_at(canvas: &mut Canvas<Window>, text: &str, x: i32, y: i32) {
-    canvas.set_draw_color(SdlColor::RGB(0, 0, 0));
-    let mut cx = x;
+/// Measure text width using fontdue system font.
+fn measure_text(text: &str) -> i32 {
+    let font = get_system_font();
+    let mut width = 0.0f32;
     for ch in text.chars() {
-        if let Some(glyph) = font::get_char(ch) {
-            for row in 0..7 {
-                let bits = glyph[row];
-                for col in 0..5i32 {
-                    if bits & (0x10 >> col) != 0 {
-                        if TEXT_SCALE == 1 {
-                            canvas.draw_point((cx + col, y + row as i32)).ok();
-                        } else {
-                            let px = cx + col * TEXT_SCALE;
-                            let py = y + row as i32 * TEXT_SCALE;
-                            canvas.fill_rect(Rect::new(px, py,
-                                TEXT_SCALE as u32, TEXT_SCALE as u32)).ok();
-                        }
-                    }
+        let (metrics, _) = font.rasterize(ch, SYS_FONT_PX);
+        width += metrics.advance_width;
+    }
+    width.ceil() as i32
+}
+
+/// Line height matching the original ~16px line spacing for ~13px font.
+const LINE_HEIGHT: i32 = 16;
+
+/// Draw text at (x, y) using fontdue rasterization.
+/// Source: SetBkColor(0xA4A4A4) so text background matches gray — invisible.
+fn draw_text_at(canvas: &mut Canvas<Window>, text: &str, x: i32, y: i32) {
+    let font = get_system_font();
+    let mut cx = x as f32;
+    for ch in text.chars() {
+        let (metrics, bitmap) = font.rasterize(ch, SYS_FONT_PX);
+        let gx = cx as i32 + metrics.xmin;
+        let gy = y + (SYS_FONT_PX as i32 - metrics.height as i32 - metrics.ymin);
+        for row in 0..metrics.height {
+            for col in 0..metrics.width {
+                let alpha = bitmap[row * metrics.width + col];
+                if alpha > 127 {
+                    canvas.set_draw_color(SdlColor::RGB(0, 0, 0));
+                    canvas.draw_point((gx + col as i32, gy + row as i32)).ok();
                 }
             }
         }
-        cx += TEXT_CHAR_W;
+        cx += metrics.advance_width;
     }
 }
 
-/// Draw text centered horizontally within a rectangle.
-/// Source: replaces DrawTextA with DT_CENTER (FUN_00403e50)
-fn draw_text_centered(canvas: &mut Canvas<Window>, text: &str,
-                      left: i32, top: i32, right: i32, _bottom: i32) {
-    let text_width = text.len() as i32 * TEXT_CHAR_W;
-    let rect_width = right - left;
-    let x = left + (rect_width - text_width) / 2;
-    draw_text_at(canvas, text, x.max(left), top);
+/// Draw text LEFT-aligned within a rectangle (single line).
+/// Source: FUN_00403e50 → DrawTextA with flags 0x810 (DT_WORDBREAK | DT_NOPREFIX).
+/// DT_CENTER (0x01) is NOT set — text is left-aligned.
+fn draw_text_in_rect(canvas: &mut Canvas<Window>, text: &str,
+                     left: i32, top: i32, _right: i32, _bottom: i32) {
+    draw_text_at(canvas, text, left, top);
 }
 
-/// Draw text wrapped and centered within a rectangle.
-/// Source: replaces DrawTextA with DT_CENTER | DT_WORDBREAK (FUN_00403e50)
-fn draw_text_wrapped_centered(canvas: &mut Canvas<Window>, text: &str,
-                               left: i32, top: i32, right: i32, bottom: i32) {
+/// Draw text LEFT-aligned with word-wrap within a rectangle.
+/// Source: FUN_00403e50 → DrawTextA with flags 0x810 (DT_WORDBREAK | DT_NOPREFIX).
+fn draw_text_wrapped_in_rect(canvas: &mut Canvas<Window>, text: &str,
+                              left: i32, top: i32, right: i32, bottom: i32) {
     let rect_width = right - left;
-    let chars_per_line = (rect_width / TEXT_CHAR_W).max(1) as usize;
 
+    // Word-wrap: measure each word and break lines when width exceeds rect
     let mut cy = top;
     let words: Vec<&str> = text.split_whitespace().collect();
     let mut line = String::new();
 
     for word in words {
-        if !line.is_empty() && line.len() + 1 + word.len() > chars_per_line {
-            // Center this line
-            let line_width = line.len() as i32 * TEXT_CHAR_W;
-            let x = left + (rect_width - line_width) / 2;
-            draw_text_at(canvas, &line, x.max(left), cy);
-            cy += TEXT_CHAR_H;
+        let test = if line.is_empty() {
+            word.to_string()
+        } else {
+            format!("{} {}", line, word)
+        };
+        if !line.is_empty() && measure_text(&test) > rect_width {
+            // Flush current line left-aligned
+            draw_text_at(canvas, &line, left, cy);
+            cy += LINE_HEIGHT;
             line.clear();
-            if cy + TEXT_CHAR_H > bottom { break; }
+            if cy + LINE_HEIGHT > bottom { break; }
         }
         if !line.is_empty() { line.push(' '); }
         line.push_str(word);
     }
-    if !line.is_empty() && cy + TEXT_CHAR_H <= bottom {
-        let line_width = line.len() as i32 * TEXT_CHAR_W;
-        let x = left + (rect_width - line_width) / 2;
-        draw_text_at(canvas, &line, x.max(left), cy);
+    if !line.is_empty() && cy + LINE_HEIGHT <= bottom {
+        draw_text_at(canvas, &line, left, cy);
     }
 }
