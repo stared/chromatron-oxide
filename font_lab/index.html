@@ -218,6 +218,11 @@ h2 { margin: 20px 0 8px; font-size: 1.1em; color: #aaa; }
 
 <div class="comparison" id="comparisonGrid"></div>
 
+<h2>System Font Glyph Sheet (vgasys.fon — all 95 ASCII chars)</h2>
+<div class="panel" style="margin-bottom:20px">
+  <img src="system_font_glyphs.png" class="reference-img" style="image-rendering:pixelated;" width="672" alt="System font glyphs 3x">
+</div>
+
 <h2>Bottom Bar Samples</h2>
 <div id="bottomBarGrid"></div>
 
@@ -225,6 +230,7 @@ h2 { margin: 20px 0 8px; font-size: 1.1em; color: #aaa; }
 // Font configurations to compare
 const FONTS = [
   { name: 'Reference', isReference: true },
+  { name: 'System font (vgasys.fon)', isPrerendered: true, prefix: 'system_font' },
   { name: 'W95FA (local)', family: "'W95FA-Local'" },
   { name: 'W95FA (CDN)', family: "'w95fa'" },
   { name: 'Geneva (local)', family: "'Geneva-Local'" },
@@ -239,16 +245,19 @@ const LEVEL_TEXTS = [
     label: 'Level 1',
     text: 'Drag the REFLECTOR in the toolbox above onto the board and place it in front of the laser beam. Click on it to rotate it. Position the mirror so that the laser beam is reflected into the pinwheel.',
     refCrop: 'reference_crop_level1.png',
+    sysRender: 'system_font_level1.png',
   },
   {
     label: 'Level 4 (splitter)',
     text: 'If a laser hits a SPLITTER at the correct angle, it bounces off at an angle and also goes straight through. If it hits head on, it just goes through.',
     refCrop: 'reference_crop_level4_splitter.png',
+    sysRender: 'system_font_level4_splitter.png',
   },
   {
     label: 'Colors (long)',
     text: 'Some pinwheels require multiple lasers to light them up. You get magenta from red and blue. Yellow is formed by green plus red. Combining green and blue yields a color known variously as cyan, teal, or aqua.',
     refCrop: 'reference_crop_level3_colors.png',
+    sysRender: 'system_font_level3_colors.png',
   },
 ];
 
@@ -300,6 +309,15 @@ function render() {
       img.alt = 'Windows reference';
       img.onerror = () => { img.alt = refCrop + ' not found — run: uv run scripts/crop_reference_text.py'; img.style.background = '#666'; img.style.width = '170px'; img.style.height = '100px'; };
       panel.appendChild(img);
+    } else if (font.isPrerendered) {
+      const sysRender = LEVEL_TEXTS[currentLevel].sysRender;
+      const img = document.createElement('img');
+      img.src = sysRender;
+      img.className = 'reference-img';
+      img.width = 170;
+      img.alt = font.name;
+      img.onerror = () => { img.alt = sysRender + ' not found'; img.style.background = '#666'; img.style.width = '170px'; img.style.height = '100px'; };
+      panel.appendChild(img);
     } else {
       const box = document.createElement('div');
       box.className = 'text-box';
@@ -329,24 +347,39 @@ function render() {
     title.textContent = font.name;
     panel.appendChild(title);
 
-    const bar = document.createElement('div');
-    bar.className = 'bottom-bar';
+    if (font.isPrerendered) {
+      const bar = document.createElement('div');
+      bar.className = 'bottom-bar';
+      for (const [src, alt] of [['system_font_bottom_freeware.png', 'freeware'], ['system_font_bottom_silverspaceship.png', 'silverspaceship.com']]) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'reference-img';
+        img.alt = alt;
+        img.style.background = '#A4A4A4';
+        img.style.padding = '2px 6px';
+        bar.appendChild(img);
+      }
+      panel.appendChild(bar);
+    } else {
+      const bar = document.createElement('div');
+      bar.className = 'bottom-bar';
 
-    const fw = document.createElement('span');
-    fw.className = 'bottom-sample';
-    fw.style.fontFamily = font.family;
-    fw.textContent = 'freeware';
-    applyToBox(fw, settings);
+      const fw = document.createElement('span');
+      fw.className = 'bottom-sample';
+      fw.style.fontFamily = font.family;
+      fw.textContent = 'freeware';
+      applyToBox(fw, settings);
 
-    const url = document.createElement('span');
-    url.className = 'bottom-sample';
-    url.style.fontFamily = font.family;
-    url.textContent = 'silverspaceship.com';
-    applyToBox(url, settings);
+      const url = document.createElement('span');
+      url.className = 'bottom-sample';
+      url.style.fontFamily = font.family;
+      url.textContent = 'silverspaceship.com';
+      applyToBox(url, settings);
 
-    bar.appendChild(fw);
-    bar.appendChild(url);
-    panel.appendChild(bar);
+      bar.appendChild(fw);
+      bar.appendChild(url);
+      panel.appendChild(bar);
+    }
     bbGrid.appendChild(panel);
   }
 }
