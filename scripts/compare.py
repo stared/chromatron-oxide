@@ -77,14 +77,14 @@ def main():
         ri = int((~rd).sum())
         print(f"  {name:<20s}: {100*ri/max(rt,1):5.1f}% identical")
 
-    # Build output: [Reference | Ours with magenta diff overlay]
+    # Build output: [Reference | Ours | Diff overlay]
     overlay = ours.copy()
     overlay[differs] = [255, 0, 255]  # magenta
 
-    panel = np.concatenate([ref, overlay], axis=1)
+    panel = np.concatenate([ref, ours, overlay], axis=1)
     Image.fromarray(panel).save(out_path)
     print(f"\nSaved: {out_path}")
-    print(f"Layout: [Reference | Ours + magenta diff]")
+    print(f"Layout: [Reference | Ours | Ours + magenta diff]")
 
 
 if __name__ == "__main__":

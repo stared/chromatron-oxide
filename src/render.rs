@@ -5,6 +5,7 @@ use sdl2::pixels::Color as SdlColor;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
+use crate::bitmap_font::BitmapFont;
 use crate::game::Game;
 use crate::levels::PALETTE;
 use crate::types::*;
@@ -95,7 +96,7 @@ pub fn get_sprite_index(cell: &Cell) -> Option<usize> {
 /// Draw the entire game frame.
 /// Source: FUN_004032f0 (render_frame) + FUN_00403690 (render_board)
 pub fn render(canvas: &mut Canvas<Window>, game: &Game, sprites: &[Vec<u8>],
-              font: &sdl2::ttf::Font) {
+              font: &BitmapFont) {
     // Step 1: Fill background with gray (0xA4 per channel)
     // Source: FUN_00403690 fills framebuffer with 0xa4
     canvas.set_draw_color(SdlColor::RGB(BG_COLOR.0, BG_COLOR.1, BG_COLOR.2));
@@ -174,30 +175,30 @@ pub fn render(canvas: &mut Canvas<Window>, game: &Game, sprites: &[Vec<u8>],
     // Source: rect (left=0x1c2(450), top=0x7d(125), right=0x26c(620), bottom=0x1db(475))
     if game.game_state == GameState::Playing && game.win_flag {
         draw_text_wrapped_in_rect(canvas, font, "Click on a level or press spacebar for next.",
-                                  450, 125, 620, 475);
+                                  450, 128, 620, 475);
     } else {
         let text = game.get_instruction_text();
         if !text.is_empty() {
-            draw_text_wrapped_in_rect(canvas, font, text, 450, 125, 620, 475);
+            draw_text_wrapped_in_rect(canvas, font, text, 450, 128, 620, 475);
         }
     }
 
     // "freeware" label
     // Source: FUN_00403e50("freeware", 0, 0x1c2, 0x64, 0x1e0)
     // rect: left=0, top=450, right=100, bottom=480
-    draw_text_in_rect(canvas, font, "freeware", 0, 450, 100, 480);
+    draw_text_in_rect(canvas, font, "freeware", 0, 453, 100, 480);
 
     // "more levels @" — shown for levels > 39 on even levels or level 49
     // Source: conditional on level>39 && (level%2==0 || level==49)
     // rect: left=350, top=450, right=465, bottom=480
     if game.current_level > 39 && (game.current_level % 2 == 0 || game.current_level == 49) {
-        draw_text_in_rect(canvas, font, "more levels @", 350, 450, 465, 480);
+        draw_text_in_rect(canvas, font, "more levels @", 350, 453, 465, 480);
     }
 
     // URL "silverspaceship.com"
     // Source: FUN_00403e50(decoded_url, 0x1d6, 0x1c2, 0x280, 0x1e0)
     // rect: left=470, top=450, right=640, bottom=480
-    draw_text_in_rect(canvas, font, "silverspaceship.com", 470, 450, 640, 480);
+    draw_text_in_rect(canvas, font, "silverspaceship.com", 470, 453, 640, 480);
 
     // NOTE: canvas.present() is called by the caller after optional framebuffer save
 }
@@ -347,44 +348,39 @@ fn draw_level_numbers(canvas: &mut Canvas<Window>, game: &Game, sprites: &[Vec<u
     }
 }
 
-/// Measure text width using sdl2_ttf (integer metrics matching original GDI).
-fn measure_text(font: &sdl2::ttf::Font, text: &str) -> i32 {
-    font.size_of(text).map(|(w, _)| w as i32).unwrap_or(0)
+/// Measure text width using bitmap font advance widths.
+/// Source: matches original GDI character metrics exactly (same bitmap font data).
+fn measure_text(font: &BitmapFont, text: &str) -> i32 {
+    font.measure_text(text)
 }
 
-/// Draw text at (x, y) using sdl2_ttf solid rendering (no anti-aliasing).
+/// Draw text at (x, y) using bitmap font (1-bit black glyphs, no anti-aliasing).
 /// Source: DrawTextA with SetBkColor(0xA4A4A4), SetTextColor(0x000000).
-/// Solid mode = 1-bit black glyphs, matching original GDI bitmap font rendering.
-fn draw_text_at(canvas: &mut Canvas<Window>, font: &sdl2::ttf::Font,
+/// Bitmap font rendering = pixel-perfect match for original GDI bitmap font.
+fn draw_text_at(canvas: &mut Canvas<Window>, font: &BitmapFont,
                 text: &str, x: i32, y: i32) {
-    if text.is_empty() { return; }
-    let surface = match font.render(text).solid(SdlColor::RGB(0, 0, 0)) {
-        Ok(s) => s,
-        Err(_) => return,
-    };
-    let tc = canvas.texture_creator();
-    let texture = match tc.create_texture_from_surface(&surface) {
-        Ok(t) => t,
-        Err(_) => return,
-    };
-    let sdl2::render::TextureQuery { width, height, .. } = texture.query();
-    canvas.copy(&texture, None, Some(sdl2::rect::Rect::new(x, y, width, height))).ok();
+    font.draw_text(canvas, text, x, y);
 }
 
 /// Draw text LEFT-aligned within a rectangle (single line).
 /// Source: FUN_00403e50 → DrawTextA with flags 0x810 (DT_WORDBREAK | DT_NOPREFIX).
 /// DT_CENTER (0x01) is NOT set — text is left-aligned.
-fn draw_text_in_rect(canvas: &mut Canvas<Window>, font: &sdl2::ttf::Font,
+fn draw_text_in_rect(canvas: &mut Canvas<Window>, font: &BitmapFont,
                      text: &str, left: i32, top: i32, _right: i32, _bottom: i32) {
     draw_text_at(canvas, font, text, left, top);
 }
 
 /// Draw text LEFT-aligned with word-wrap within a rectangle.
 /// Source: FUN_00403e50 → DrawTextA with flags 0x810 (DT_WORDBREAK | DT_NOPREFIX).
-fn draw_text_wrapped_in_rect(canvas: &mut Canvas<Window>, font: &sdl2::ttf::Font,
+fn draw_text_wrapped_in_rect(canvas: &mut Canvas<Window>, font: &BitmapFont,
                               text: &str, left: i32, top: i32, right: i32, bottom: i32) {
     let rect_width = right - left;
-    let line_height = font.height();
+    // Source: DrawTextA uses tmHeight + tmExternalLeading for line spacing
+    // MS Sans Serif 8pt: tmHeight=13, tmExternalLeading=3 → line spacing=16
+    // W95FA's internal metrics don't include the external leading, so we hard-code 16
+    // to match the original Win32 rendering exactly.
+    // Verified: reference screenshot shows text lines at y intervals of exactly 16px
+    let line_height = 16;
 
     // Word-wrap: measure each word and break lines when width exceeds rect
     let mut cy = top;

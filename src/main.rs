@@ -10,6 +10,8 @@ mod game;
 mod render;
 mod input;
 mod font;
+mod ms_sans_serif;
+mod bitmap_font;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -35,20 +37,12 @@ fn main() {
     let mut canvas = window.into_canvas().build().expect("Failed to create canvas");
     let mut event_pump = sdl_context.event_pump().expect("Failed to get event pump");
 
-    // Initialize SDL2_ttf and load system font
-    // Source: Win32 uses default SYSTEM_FONT (MS Sans Serif 8pt/13px bitmap)
-    // sserife.fon = Wine's pre-built MS Sans Serif bitmap font (LGPL 2.1)
-    // FreeType (used by SDL2_ttf) supports loading .fon files natively.
-    let ttf_context = sdl2::ttf::init().expect("Failed to init SDL2_ttf");
-    let mut font = ttf_context.load_font("assets/fonts/sserife.fon", 13)
-        .unwrap_or_else(|e| {
-            eprintln!("sserife.fon failed ({e}), falling back to Geneva.ttf");
-            let mut f = ttf_context.load_font("assets/fonts/Geneva.ttf", 13)
-                .expect("Failed to load assets/fonts/Geneva.ttf");
-            f.set_hinting(sdl2::ttf::Hinting::Mono);
-            f
-        });
-    font.set_kerning(false);
+    // Initialize bitmap font renderer
+    // Source: Win32 uses default SYSTEM_FONT (MS Sans Serif 8pt at 96 DPI)
+    // tmHeight=13, tmExternalLeading=3 → DrawTextA line skip = 16
+    // Glyph bitmaps extracted from Wine's sserife.fon (LGPL 2.1) — pixel-perfect match
+    let font = bitmap_font::BitmapFont::new();
+    eprintln!("Font loaded: height={}, line_spacing={}", font.height(), font.line_spacing());
 
     // Decompress all sprites
     // Source: FUN_00403740 @ 0x403740 (decompress_sprites), called from FUN_00402b90 (game_init)
