@@ -1,8 +1,3 @@
 [build]
 target = "web/index.html"
 dist = "web/dist"
-
-[tools]
-# Skip wasm-opt — Trunk's bundled v116 doesn't support bulk-memory.
-# Rust's own LTO (lto=true in Cargo.toml) handles optimization.
-wasm_opt = "Off"
