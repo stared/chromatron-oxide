@@ -101,9 +101,20 @@ pub fn render(fb: &mut FrameBuffer, game: &Game, sprites: &[Vec<u8>],
     // Step 2: Draw all cells on main grid (first pass, threshold=0)
     // Source: FUN_00403690 first loop, calls FUN_00402d10(col, row, 0)
     // threshold=0 means ALL pixels are drawn, including grid background (sprite 0)
+    // Skip the cell being dragged — draw empty grid tile instead
+    let dragging_grid = game.drag_state == DragState::Dragging
+        && game.selected_y != GRID_SIZE as i32;
     for row in 0..GRID_SIZE {
         for col in 0..GRID_SIZE {
-            draw_cell(fb, &game.grid[row][col], col, row, sprites, 0);
+            if dragging_grid
+                && col == game.selected_x as usize
+                && row == game.selected_y as usize
+            {
+                let empty = Cell::default();
+                draw_cell(fb, &empty, col, row, sprites, 0);
+            } else {
+                draw_cell(fb, &game.grid[row][col], col, row, sprites, 0);
+            }
         }
     }
 
@@ -113,7 +124,11 @@ pub fn render(fb: &mut FrameBuffer, game: &Game, sprites: &[Vec<u8>],
     for row in 0..GRID_SIZE {
         for col in 0..GRID_SIZE {
             let has_beams = draw_beams_at_cell(fb, &game.grid[row][col], col, row);
-            if has_beams {
+            if has_beams
+                && !(dragging_grid
+                    && col == game.selected_x as usize
+                    && row == game.selected_y as usize)
+            {
                 // Redraw piece without background so beams show through
                 // Source: FUN_00402d10(col, row, 0x10) when beams present
                 draw_cell(fb, &game.grid[row][col], col, row, sprites, 0x10);
@@ -124,6 +139,8 @@ pub fn render(fb: &mut FrameBuffer, game: &Game, sprites: &[Vec<u8>],
     // Step 4: Draw toolbox cells (24 cells at row 0xF, threshold=0)
     // Source: FUN_00403690 third loop, FUN_00402d10(col, 0xF, 0) for col 0..23
     // NOTE: Original draws all 24 slots, including empty ones (draws grid bg tile)
+    let dragging_toolbox = game.drag_state == DragState::Dragging
+        && game.selected_y == GRID_SIZE as i32;
     for i in 0..(TOOLBOX_COLS * TOOLBOX_ROWS) {
         // Toolbox position: (col%6)*26+460, (col/6)*26+20
         // Source: FUN_00402d10 toolbox branch
@@ -131,7 +148,11 @@ pub fn render(fb: &mut FrameBuffer, game: &Game, sprites: &[Vec<u8>],
         let display_row = i / TOOLBOX_COLS;
         let cx = (display_col as i32) * TOOLBOX_CELL_SIZE + TOOLBOX_ORIGIN_X;
         let cy = (display_row as i32) * TOOLBOX_CELL_SIZE + TOOLBOX_ORIGIN_Y;
-        if i < game.toolbox.len() {
+        if dragging_toolbox && i == game.selected_x as usize {
+            // Dragged toolbox slot: draw empty grid tile
+            let empty = Cell::default();
+            draw_sprite_at(fb, &empty, cx, cy, sprites, 0);
+        } else if i < game.toolbox.len() {
             draw_sprite_at(fb, &game.toolbox[i], cx, cy, sprites, 0);
         } else {
             // Empty toolbox slot: draw grid background tile (sprite 0)
@@ -143,7 +164,7 @@ pub fn render(fb: &mut FrameBuffer, game: &Game, sprites: &[Vec<u8>],
     // Draw dragged piece at cursor position
     // Source: FUN_00403650 (draw_drag_overlay)
     if let Some(dragged) = game.get_dragged_cell() {
-        draw_sprite_at(fb, dragged, game.drag_pixel_x, game.drag_pixel_y, sprites, 0);
+        draw_sprite_at(fb, dragged, game.drag_pixel_x, game.drag_pixel_y, sprites, 0x0E);
     }
 
     // Step 5: Draw level selector (if game_mode == 2)
