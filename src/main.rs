@@ -137,7 +137,23 @@ impl App {
             force_1x_backing(window);
         }
 
-        #[cfg(not(target_os = "macos"))]
+        // WASM: always present at native 640×480 — let CSS image-rendering: pixelated
+        // handle the scaling. This avoids software upscaling artifacts (uneven grid lines)
+        // and blue border artifacts from canvas/surface size mismatches.
+        #[cfg(target_arch = "wasm32")]
+        {
+            surface.resize(
+                NonZeroU32::new(FB_WIDTH as u32).unwrap(),
+                NonZeroU32::new(FB_HEIGHT as u32).unwrap(),
+            ).expect("Failed to resize surface");
+
+            let mut buffer = surface.buffer_mut().expect("Failed to get buffer");
+            buffer[..self.fb.pixels.len()].copy_from_slice(&self.fb.pixels);
+            buffer.present().expect("Failed to present buffer");
+        }
+
+        // Linux/Windows: software nearest-neighbor scale to physical window size
+        #[cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))]
         {
             let size = window.inner_size();
             let dst_w = size.width as usize;

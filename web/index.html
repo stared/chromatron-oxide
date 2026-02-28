@@ -18,9 +18,24 @@
         canvas {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            width: 100vw;
+            height: calc(100vw * 480 / 640);
+            max-height: 100vh;
+            max-width: calc(100vh * 640 / 480);
         }
+        .backlink {
+            position: fixed;
+            top: 8px;
+            left: 10px;
+            color: #aaa;
+            font: 13px system-ui, sans-serif;
+            text-decoration: none;
+            z-index: 10;
+        }
+        .backlink:hover { color: #fff; }
     </style>
 </head>
 <body>
+    <a class="backlink" href="../">&#8592; Downloads</a>
 </body>
 </html>
