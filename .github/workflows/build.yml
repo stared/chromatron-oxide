@@ -52,10 +52,99 @@ jobs:
           path: dist/Chromatron-macos-intel-unsigned.dmg
           if-no-files-found: error
 
-  publish-site:
-    name: Publish landing page and DMGs
+  build-windows:
+    name: Build Windows (x86_64)
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp target/release/chromatron.exe dist/
+          cd dist && 7z a ../Chromatron-windows-x86_64.zip chromatron.exe
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromatron-windows-x86_64-zip
+          path: Chromatron-windows-x86_64.zip
+          if-no-files-found: error
+
+  build-linux:
+    name: Build Linux (x86_64)
     runs-on: ubuntu-latest
-    needs: [build-macos]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            pkg-config \
+            libx11-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libwayland-dev
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp target/release/chromatron dist/
+          tar czf Chromatron-linux-x86_64.tar.gz -C dist chromatron
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromatron-linux-x86_64-tar
+          path: Chromatron-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+  build-wasm:
+    name: Build WASM
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install Trunk
+        run: |
+          TRUNK_VERSION="0.21.5"
+          wget -qO- "https://github.com/trunk-rs/trunk/releases/download/v${TRUNK_VERSION}/trunk-x86_64-unknown-linux-gnu.tar.gz" | tar xzf -
+          chmod +x trunk
+          sudo mv trunk /usr/local/bin/
+
+      - name: Build WASM with Trunk
+        run: trunk build --release
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromatron-wasm
+          path: web/dist/
+          if-no-files-found: error
+
+  publish-site:
+    name: Publish landing page and artifacts
+    runs-on: ubuntu-latest
+    needs: [build-macos, build-windows, build-linux, build-wasm]
     if: github.ref == 'refs/heads/main'
     env:
       DIST_REPO: ${{ vars.DIST_REPO != '' && vars.DIST_REPO || github.repository }}
@@ -76,7 +165,25 @@ jobs:
           name: chromatron-macos-intel-dmg
           path: artifacts/dmg
 
-      - name: Publish DMGs to latest release
+      - name: Download Windows zip
+        uses: actions/download-artifact@v4
+        with:
+          name: chromatron-windows-x86_64-zip
+          path: artifacts/windows
+
+      - name: Download Linux tar.gz
+        uses: actions/download-artifact@v4
+        with:
+          name: chromatron-linux-x86_64-tar
+          path: artifacts/linux
+
+      - name: Download WASM build
+        uses: actions/download-artifact@v4
+        with:
+          name: chromatron-wasm
+          path: artifacts/wasm
+
+      - name: Publish artifacts to latest release
         run: |
           gh release view latest --repo "$DIST_REPO" >/dev/null 2>&1 || \
             gh release create latest \
@@ -86,22 +193,29 @@ jobs:
           gh release upload latest \
             artifacts/dmg/Chromatron-macos-apple-silicon-unsigned.dmg \
             artifacts/dmg/Chromatron-macos-intel-unsigned.dmg \
+            artifacts/windows/Chromatron-windows-x86_64.zip \
+            artifacts/linux/Chromatron-linux-x86_64.tar.gz \
             --clobber \
             --repo "$DIST_REPO"
 
       - name: Prepare static site content
         run: |
           mkdir -p site
+          cp -r artifacts/wasm site/play
           BUILD_UTC="$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
           COMMIT_SHORT="${GITHUB_SHA:0:12}"
           DMG_ARM64_SHA256="$(sha256sum artifacts/dmg/Chromatron-macos-apple-silicon-unsigned.dmg | awk '{print $1}')"
           DMG_X86_64_SHA256="$(sha256sum artifacts/dmg/Chromatron-macos-intel-unsigned.dmg | awk '{print $1}')"
+          WIN_ZIP_SHA256="$(sha256sum artifacts/windows/Chromatron-windows-x86_64.zip | awk '{print $1}')"
+          LINUX_TAR_SHA256="$(sha256sum artifacts/linux/Chromatron-linux-x86_64.tar.gz | awk '{print $1}')"
           sed \
             -e "s|__DIST_REPO__|${DIST_REPO}|g" \
             -e "s|__BUILD_UTC__|${BUILD_UTC}|g" \
             -e "s|__COMMIT_SHORT__|${COMMIT_SHORT}|g" \
             -e "s|__DMG_ARM64_SHA256__|${DMG_ARM64_SHA256}|g" \
             -e "s|__DMG_X86_64_SHA256__|${DMG_X86_64_SHA256}|g" \
+            -e "s|__WIN_ZIP_SHA256__|${WIN_ZIP_SHA256}|g" \
+            -e "s|__LINUX_TAR_SHA256__|${LINUX_TAR_SHA256}|g" \
             .github/templates/public-index.html.tmpl > site/index.html
 
       - name: Upload Pages artifact

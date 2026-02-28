@@ -14,6 +14,7 @@ web/*.wasm
 web/*.data
 web/*.html
 !web/index.html
+web/dist/
 
 # OS files
 .DS_Store

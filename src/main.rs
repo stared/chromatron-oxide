@@ -183,6 +183,12 @@ impl ApplicationHandler for App {
             .with_inner_size(LogicalSize::new(WINDOW_WIDTH, WINDOW_HEIGHT))
             .with_resizable(false);
 
+        #[cfg(target_arch = "wasm32")]
+        let attrs = {
+            use winit::platform::web::WindowAttributesExtWebSys;
+            attrs.with_append(true)
+        };
+
         let window = Arc::new(event_loop.create_window(attrs).expect("Failed to create window"));
         self.scale_factor = window.scale_factor();
 

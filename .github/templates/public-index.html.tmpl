@@ -8,25 +8,51 @@
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; }
     a { font-weight: 600; }
     code { background: #f4f4f4; padding: 0.1rem 0.3rem; border-radius: 4px; }
+    .play-btn { display: inline-block; background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-size: 1.1rem; margin: 1rem 0; }
+    .play-btn:hover { background: #1d4ed8; }
   </style>
 </head>
 <body>
-  <h1>Chromatron (macOS)</h1>
+  <h1>Chromatron</h1>
 
   <p>Original game by <a href="https://www.silverspaceship.com/chromatron/">Silver Spaceship Software</a>.<br>
   Recompiled binaries posted with the original author's permission.<br>
   Recompilation by <a href="https://p.migdal.pl/">Piotr Migda&#x142;</a> (blog post coming soon).</p>
 
+  <h2>Play in Browser</h2>
+  <p><a class="play-btn" href="play/">&#9654; Play Chromatron</a></p>
+
   <h2>Download</h2>
+  <h3>macOS</h3>
   <ul>
-    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-apple-silicon-unsigned.dmg">Download macOS Apple Silicon (.dmg)</a></li>
-    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-intel-unsigned.dmg">Download macOS Intel (.dmg)</a></li>
+    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-apple-silicon-unsigned.dmg">macOS Apple Silicon (.dmg)</a></li>
+    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-intel-unsigned.dmg">macOS Intel (.dmg)</a></li>
   </ul>
 
-  <h2>Installation on macOS</h2>
-  <p>If you download the app and get a message saying the app is damaged and cannot be opened, run the following command in Terminal:</p>
+  <h3>Windows</h3>
+  <ul>
+    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-windows-x86_64.zip">Windows x86_64 (.zip)</a></li>
+  </ul>
+
+  <h3>Linux</h3>
+  <ul>
+    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-linux-x86_64.tar.gz">Linux x86_64 (.tar.gz)</a></li>
+  </ul>
+
+  <h2>Installation Notes</h2>
+  <h3>macOS</h3>
+  <p>If you get a message saying the app is damaged and cannot be opened, run in Terminal:</p>
   <pre><code>xattr -cr /Applications/Chromatron.app</code></pre>
-  <p>(Or point to wherever you placed the app). This is necessary because the app is not signed with an Apple Developer ID.</p>
+  <p>This is necessary because the app is not signed with an Apple Developer ID.</p>
+
+  <h3>Windows</h3>
+  <p>Extract the zip and run <code>chromatron.exe</code>. Windows SmartScreen may warn about an unrecognized app &mdash; click &ldquo;More info&rdquo; then &ldquo;Run anyway&rdquo;.</p>
+
+  <h3>Linux</h3>
+  <p>Extract and run:</p>
+  <pre><code>tar xzf Chromatron-linux-x86_64.tar.gz
+chmod +x chromatron
+./chromatron</code></pre>
 
   <h2>Build Info</h2>
   <ul>
@@ -34,6 +60,8 @@
     <li>Commit: <code>__COMMIT_SHORT__</code></li>
     <li>Apple Silicon DMG SHA256: <code>__DMG_ARM64_SHA256__</code></li>
     <li>Intel DMG SHA256: <code>__DMG_X86_64_SHA256__</code></li>
+    <li>Windows ZIP SHA256: <code>__WIN_ZIP_SHA256__</code></li>
+    <li>Linux TAR.GZ SHA256: <code>__LINUX_TAR_SHA256__</code></li>
   </ul>
 </body>
 </html>
