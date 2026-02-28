@@ -1,14 +1,17 @@
-name: Build macOS
+name: Build & Deploy
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-macos:
     strategy:
       matrix:
         include:
@@ -29,10 +32,90 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }} --features sdl2/static-link
+        run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Upload binary
+      - name: Create unsigned app bundle
+        run: bash .github/scripts/build_macos_bundle.sh dist/Chromatron.app target/${{ matrix.target }}/release/chromatron
+
+      - name: Create unsigned DMG
+        run: bash .github/scripts/create_unsigned_dmg.sh dist/Chromatron.app dist/Chromatron-macos-${{ matrix.arch }}-unsigned.dmg
+
+      - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chromatron-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/chromatron
+          name: chromatron-macos-${{ matrix.arch }}-dmg
+          path: dist/Chromatron-macos-${{ matrix.arch }}-unsigned.dmg
+          if-no-files-found: error
+
+  publish-site:
+    name: Publish landing page and DMGs
+    runs-on: ubuntu-latest
+    needs: [build-macos]
+    if: github.ref == 'refs/heads/main'
+    env:
+      DIST_REPO: ${{ vars.DIST_REPO != '' && vars.DIST_REPO || github.repository }}
+      GH_TOKEN: ${{ secrets.DIST_REPO_PAT != '' && secrets.DIST_REPO_PAT || secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Apple Silicon DMG
+        uses: actions/download-artifact@v4
+        with:
+          name: chromatron-macos-apple-silicon-dmg
+          path: artifacts/dmg
+
+      - name: Download Intel DMG
+        uses: actions/download-artifact@v4
+        with:
+          name: chromatron-macos-intel-dmg
+          path: artifacts/dmg
+
+      - name: Publish DMGs to latest release
+        run: |
+          gh release view latest --repo "$DIST_REPO" >/dev/null 2>&1 || \
+            gh release create latest \
+              --title "Latest build" \
+              --notes "Automated build artifacts published from source repository." \
+              --repo "$DIST_REPO"
+          gh release upload latest \
+            artifacts/dmg/Chromatron-macos-apple-silicon-unsigned.dmg \
+            artifacts/dmg/Chromatron-macos-intel-unsigned.dmg \
+            --clobber \
+            --repo "$DIST_REPO"
+
+      - name: Prepare static site content
+        run: |
+          mkdir -p site
+          BUILD_UTC="$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          COMMIT_SHORT="${GITHUB_SHA:0:12}"
+          DMG_ARM64_SHA256="$(sha256sum artifacts/dmg/Chromatron-macos-apple-silicon-unsigned.dmg | awk '{print $1}')"
+          DMG_X86_64_SHA256="$(sha256sum artifacts/dmg/Chromatron-macos-intel-unsigned.dmg | awk '{print $1}')"
+          sed \
+            -e "s|__DIST_REPO__|${DIST_REPO}|g" \
+            -e "s|__BUILD_UTC__|${BUILD_UTC}|g" \
+            -e "s|__COMMIT_SHORT__|${COMMIT_SHORT}|g" \
+            -e "s|__DMG_ARM64_SHA256__|${DMG_ARM64_SHA256}|g" \
+            -e "s|__DMG_X86_64_SHA256__|${DMG_X86_64_SHA256}|g" \
+            .github/templates/public-index.html.tmpl > site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy-pages:
+    name: Deploy GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [publish-site]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
