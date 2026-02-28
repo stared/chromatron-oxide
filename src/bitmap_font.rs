@@ -4,10 +4,7 @@
 /// Source: sserife.fon (Wine's MS Sans Serif, LGPL 2.1) = pixel-perfect match for
 /// the original Win32 SYSTEM_FONT used by Chromatron.
 
-use sdl2::pixels::Color as SdlColor;
-use sdl2::render::Canvas;
-use sdl2::video::Window;
-
+use crate::framebuffer::FrameBuffer;
 use crate::ms_sans_serif::*;
 
 /// Bitmap font renderer. All data is static/const — no allocation needed.
@@ -45,12 +42,11 @@ impl BitmapFont {
         text.chars().map(|ch| Self::glyph(ch).advance as i32).sum()
     }
 
-    /// Draw text directly to the canvas at (x, y) in black.
-    /// This is the fast path — avoids surface allocation by drawing pixels directly.
-    pub fn draw_text(&self, canvas: &mut Canvas<Window>, text: &str, x: i32, y: i32) {
+    /// Draw text directly to the framebuffer at (x, y) in black.
+    pub fn draw_text(&self, fb: &mut FrameBuffer, text: &str, x: i32, y: i32) {
         if text.is_empty() { return; }
 
-        canvas.set_draw_color(SdlColor::RGB(0, 0, 0));
+        let black = FrameBuffer::rgb(0, 0, 0);
 
         let mut pen_x = x;
         for ch in text.chars() {
@@ -72,7 +68,7 @@ impl BitmapFont {
                     {
                         let px = dst_x + bx as i32;
                         let py = dst_y + by as i32;
-                        canvas.draw_point((px, py)).ok();
+                        fb.set_pixel(px, py, black);
                     }
                 }
             }

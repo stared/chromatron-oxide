@@ -9,7 +9,6 @@ mod beam;
 mod game;
 mod render;
 mod input;
-mod font;
 mod ms_sans_serif;
 mod bitmap_font;
 mod framebuffer;
