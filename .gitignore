@@ -27,6 +27,24 @@ Thumbs.db
 .idea/
 
 
+# Ephemeral screenshots (framebuffer dumps, comparisons, diffs)
+screenshots/framebuffer_*
+screenshots/comparison*.png
+screenshots/diff_*.png
+screenshots/superimposed*.png
+screenshots/migration_compare.png
+screenshots/*_strips.png
+screenshots/text_*.png
+screenshots/text-fix_*.png
+screenshots/width_*.png
+screenshots/font_comparison.png
+
+# Trial fonts (not used in final build)
+assets/fonts/*.ttf
+assets/fonts/*.otf
+assets/fonts/sserife_microsoft.fon
+assets/fonts/sseriff.fon
+
 # Added by cargo
 
 /target
