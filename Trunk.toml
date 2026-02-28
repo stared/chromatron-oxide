@@ -1,3 +1,5 @@
 [build]
 target = "web/index.html"
 dist = "web/dist"
+# Use relative paths so assets resolve correctly regardless of deploy prefix
+public_url = "./"
