@@ -4,6 +4,15 @@
 use crate::types::*;
 use crate::levels::LEVELS;
 use crate::beam;
+use crate::storage;
+
+/// Saved state for a single level: grid + toolbox.
+/// Source: DAT_00418ea0[64] — dynamically allocated grid snapshots
+#[derive(Clone)]
+pub struct SavedLevelState {
+    pub grid: Vec<Vec<Cell>>,
+    pub toolbox: Vec<Cell>,
+}
 
 /// The main game state, mirroring the original's global variables.
 pub struct Game {
@@ -58,9 +67,9 @@ pub struct Game {
     pub click_start_x: i32,
     pub click_start_y: i32,
 
-    /// Saved grid states per level
+    /// Saved states per level (grid + toolbox)
     /// Source: DAT_00418ea0[64] — dynamically allocated
-    pub saved_states: Vec<Option<Vec<Vec<Cell>>>>,
+    pub saved_states: Vec<Option<SavedLevelState>>,
 
     /// Cheat flag (L key)
     /// Source: DAT_0041a860
@@ -94,6 +103,10 @@ impl Game {
             cheat_flag: false,
             dirty: true,
         };
+        // Try to restore from persistent save
+        if let Some(save) = storage::load_game() {
+            game.apply_save_data(save);
+        }
         game.compute_level_access();
         game.load_level(true);
         game
@@ -108,12 +121,14 @@ impl Game {
 
         if from_saved {
             if let Some(saved) = &self.saved_states[level_idx] {
-                // Restore from saved state
+                // Restore grid from saved state
                 for y in 0..GRID_SIZE {
                     for x in 0..GRID_SIZE {
-                        self.grid[y][x] = saved[y][x].clone();
+                        self.grid[y][x] = saved.grid[y][x].clone();
                     }
                 }
+                // Restore toolbox from saved state
+                self.toolbox = saved.toolbox.clone();
                 self.check_win_condition();
                 self.game_state = GameState::Playing;
                 self.dirty = true;
@@ -173,13 +188,21 @@ impl Game {
         self.toolbox.sort_by_key(|c| (c.piece_type as u8, c.color));
     }
 
-    /// Save current grid state for this level
+    /// Save current grid + toolbox state for this level
     /// Source: FUN_004024b0 @ 0x4024b0
-    pub fn save_grid_state(&mut self) {
-        let state: Vec<Vec<Cell>> = self.grid.iter()
+    pub fn save_level_state(&mut self) {
+        let grid: Vec<Vec<Cell>> = self.grid.iter()
             .map(|row| row.iter().cloned().collect())
             .collect();
-        self.saved_states[self.current_level] = Some(state);
+        let toolbox = self.toolbox.clone();
+        self.saved_states[self.current_level] = Some(SavedLevelState { grid, toolbox });
+    }
+
+    /// Apply restored save data (called on startup if save file exists).
+    pub fn apply_save_data(&mut self, save: storage::SaveData) {
+        self.current_level = save.current_level;
+        self.level_completed = save.level_completed;
+        self.saved_states = save.saved_states;
     }
 
     /// Compute which levels are accessible
@@ -243,8 +266,9 @@ impl Game {
         // Source: 0x401d10 checks DAT_0041a800 and DAT_0041a980
         if self.game_state == GameState::Playing && self.win_flag && !self.level_completed[self.current_level] {
             self.level_completed[self.current_level] = true;
-            self.save_grid_state();
+            self.save_level_state();
             self.compute_level_access();
+            storage::save_game(self);
         }
     }
 
@@ -252,7 +276,7 @@ impl Game {
     /// Source: FUN_00402560 @ 0x402560
     pub fn select_level(&mut self, level: usize) {
         if level >= NUM_LEVELS { return; }
-        self.save_grid_state();
+        self.save_level_state();
         self.current_level = level;
         self.load_level(true);
     }
@@ -260,7 +284,7 @@ impl Game {
     /// Advance to next level
     /// Source: FUN_004025e0 @ 0x4025e0
     pub fn next_level(&mut self) {
-        self.save_grid_state();
+        self.save_level_state();
         if self.current_level < NUM_LEVELS - 1 {
             self.current_level += 1;
         }
@@ -270,7 +294,7 @@ impl Game {
     /// Go to previous level
     /// Source: FUN_00402610 @ 0x402610
     pub fn prev_level(&mut self) {
-        self.save_grid_state();
+        self.save_level_state();
         if self.current_level > 0 {
             self.current_level -= 1;
         }

@@ -12,6 +12,7 @@ mod input;
 mod ms_sans_serif;
 mod bitmap_font;
 mod framebuffer;
+mod storage;
 
 use std::num::NonZeroU32;
 use std::sync::Arc;
@@ -227,7 +228,8 @@ impl ApplicationHandler for App {
             WindowEvent::CloseRequested => {
                 // Save on exit
                 // Source: WinMain post-loop: FUN_00403730 (save_on_exit)
-                self.game.save_grid_state();
+                self.game.save_level_state();
+                storage::save_game(&self.game);
                 event_loop.exit();
             }
 
@@ -264,7 +266,8 @@ impl ApplicationHandler for App {
                     _ => return,
                 };
                 if input::handle_keypress(&mut self.game, code) {
-                    self.game.save_grid_state();
+                    self.game.save_level_state();
+                    storage::save_game(&self.game);
                     event_loop.exit();
                     return;
                 }
