@@ -1,0 +1,169 @@
+Chromatron Recompilation — Commit Timeline Across All 4 Repos
+=============================================================
+
+REPO 1: chromatroning (Opus 4.5 / Claude Code / C + Raylib)
+------------------------------------------------------------
+2026-01-14  298bdc2  Initial setup: Chromatron reverse engineering project
+2026-01-14  16ad826  Add GhidraMCP client script for reverse engineering
+2026-01-14  339fa75  Add level extraction script and export 62 levels
+2026-01-14  a3eb8ba  Add CLAUDE.md with critical pixel-perfect accuracy requirements
+2026-01-14  a2e35e1  Extract sprites and palette from Chromatron.exe
+2026-01-14  48fa09a  Document game mechanics from decompilation
+2026-01-14  dc28cce  Add native Chromatron port with Raylib
+2026-01-14  b953525  Implement level loading and sprite rendering
+2026-01-14  cf549fe  Fix pixel-perfect accuracy based on 100% binary decompilation
+2026-01-14  7c1f327  Fix toolbox placement and level list display
+2026-01-14  f29fd5f  Fix color rendering and beam display
+2026-01-15  932de1b  Improve UI layout to match original pixel-perfect
+2026-01-15  42c6507  Fine-tune colors and spacing for pixel-perfect match
+2026-01-15  c131c76  Further pixel-perfect improvements
+2026-01-15  1b451a8  Adjust mirror sprite rotation offset
+2026-01-15  30f8a55  Improve visual fidelity to match original (90% similarity)
+2026-01-15  bb4d1d6  Fix colors based on histogram analysis of original
+2026-01-15  7e5c19e  Fix beam colors and direction system documentation
+2026-01-15  237034f  Add dynamic help text system and bitmap font
+2026-01-15  fdf173d  Fix palette dual-bank byte order and beam rendering
+2026-01-15  4cb9be3  Fix mirror sprite index formula to match original binary
+2026-01-15  07b5931  Add automated level testing and fix toolbox rendering
+
+Summary: 22 commits, Jan 14-15 (2 days). Result: "Almost works" but not playable.
+
+
+REPO 2: chromatron-m2c (m2c decompiler / C + SDL2)
+---------------------------------------------------
+2026-01-14  e28a373  Add original Chromatron binary and Ghidra decompilation
+2026-01-15  5b75ebd  Add asset extraction and initial SDL2 port skeleton
+2026-01-15  c92171b  Fix critical bugs and complete beam propagation logic
+2026-01-17  4918370  Fix sprite extraction off-by-one error and improve rendering
+2026-01-17  36fe303  Improve color matching with reference screenshot
+2026-01-17  c268e78  Make template range RED for digit display
+2026-01-17  13638ee  Fix color rendering to match original game
+2026-01-17  a46e059  Fix sprite rendering to match original decompiled logic
+2026-01-17  225c70c  Fix template palette range (16-31) to gray/metallic
+2026-01-19  b28ba91  Fix palette colors to achieve 99.98% pixel accuracy
+2026-01-19  01f8d3f  Add full game comparison tools and analysis scripts
+2026-01-19  80fee1d  Achieve 100% pixel-perfect grid rendering
+2026-01-20  cd5c08e  Add reference font glyphs and improve tray/text rendering
+2026-01-20  820e6b4  Fix mirror sprites (32-39) to match original game design
+2026-01-21  6c51626  Fix mirror sprite 33 by extracting correct data from reference
+2026-01-21  e191bf8  Update CLAUDE.md: prefer Python scripts over bash chains
+2026-01-21  eaedeb8  Add all 8 mirror rotation sprites (32-39)
+
+Summary: 17 commits, Jan 14-21 (8 days). Result: "Did something, stuck."
+
+
+REPO 3: chromatron-cursor (Cursor + GPT-5.2-Codex / C++ + SDL2)
+----------------------------------------------------------------
+Phase 1 — Active development (Jan 15-17):
+2026-01-15  829ce62  chromatron binaries
+2026-01-15  9b910f7  Add native SDL2 renderer and asset extractor
+2026-01-15  1640c56  Refine asset extraction and beam rendering
+2026-01-15  c37670e  Align beam rendering to cell geometry
+2026-01-16  7a06864  Implement CoreText-backed UI text rendering
+2026-01-16  7429376  Add basic drag-and-rotate interactions
+2026-01-16  f2a2c85  Allow dropping pieces back into toolbox
+2026-01-16  3c038e2  Document input handling decomp findings
+2026-01-16  247f30a  Add decompiled analysis artifacts
+2026-01-16  793a8aa  Document repository overview and structure
+2026-01-16  4bc7ddf  Align win messaging and level state persistence
+2026-01-16  40cdb4e  Add Rust SDL2 port baseline
+2026-01-17  ec89617  Refactor Rust port for winit/pixels
+
+~~~~~~~~~ ~1 MONTH GAP (Jan 17 → Feb 15) ~~~~~~~~~
+
+Phase 2 — Cleanup, packaging, publishing (Feb 15-16):
+2026-02-15  62b7296  Add binary-ground-truth validation workflow for Rust port
+2026-02-15  5598c7c  Track remaining assets and reverse-analysis artifacts
+2026-02-15  68f8941  Curate reference truth set and remove reverse-analysis noise
+2026-02-15  ca4ab43  Remove Rust implementation from main branch
+2026-02-15  ac4457c  Remove generated ground_truth_ppm corpus from main
+2026-02-15  be701cb  Add GitHub Actions workflow to build native binary
+2026-02-15  5d02cc6  Package and upload only unsigned macOS DMG artifact
+2026-02-15  cf05119  Extract core types and IO helpers from native main.cpp
+2026-02-15  4663097  Extract game state and input helpers from native main.cpp
+2026-02-15  d545f3d  Extract beam simulation engine from native main.cpp
+2026-02-15  1fc49d4  Extract render pipeline from native main.cpp
+2026-02-15  83093a8  Extract event controller from native main.cpp
+2026-02-15  1449989  Add WASM build target with browser-local progress persistence
+2026-02-15  9c775c3  Ignore generated WASM build output directory
+2026-02-15  29b8ed0  Publish public distribution pipeline for Pages and DMG
+2026-02-15  027caa1  Default public distribution workflow to current repository
+2026-02-15  a55c4c1  Switch Pages publish to official deploy-pages workflow
+2026-02-15  a63f7f2  Use minimal WASM shell index and document macOS app signing
+2026-02-15  327c505  Expose build metadata and signing commands on landing page
+2026-02-15  4a8d40e  Refactor distribution workflow into reusable scripts and templates
+2026-02-15  913689e  Ignore generated distribution output directory
+2026-02-16  babe4ce  website better notes
+
+Summary: 35 commits (13 dev + 22 cleanup). Jan 15-17 active dev, Feb 15-16 packaging.
+Result: "First working result." Playable.
+
+
+REPO 4: chromatron-cc46 (Opus 4.6 / Claude Code / Rust + winit+softbuffer)
+---------------------------------------------------------------------------
+Day 1 — Full recompilation (Feb 15):
+2026-02-15  85052f3  Add original Chromatron binaries and reference screenshots
+2026-02-15  8a8e05b  Add unpacked binaries and initial reconnaissance notes
+2026-02-15  fe1da94  Add Ghidra decompilation script, switch plan to Rust + SDL2
+2026-02-15  a911599  Add Ghidra decompiled output for Win32 and Mac PPC binaries
+2026-02-15  0f1a266  Complete code archaeology: annotated function map + WndProc
+2026-02-15  d20fd00  Rust + SDL2 recompilation: fully playable (55,647 insertions!)
+
+Pixel-perfect push (Feb 16-19):
+2026-02-16  2576c24  Pixel-perfect rendering: 98% identical to original binary
+2026-02-17  b103468  Fix text rendering: Geneva font, left-aligned
+2026-02-17  4f0e4b2  WIP: Try sserife.fon bitmap font (86.3% text match)
+2026-02-17  237b112  Add font_lab: browser-based font comparison tool
+2026-02-17  a80313c  font_lab: add 11px/8pt size options
+2026-02-18  78a8027  Extract pixel-perfect glyphs from reference (99.7% match)
+2026-02-18  f66d23e  Use vgasys.fon for pixel-perfect text (307,199/307,200 pixels!)
+2026-02-19  44592de  Add GitHub Actions workflow
+2026-02-19  77ac108  Fix macOS Retina scaling
+
+~~~~~~~~~ 9 DAY GAP (Feb 19 → Feb 28) ~~~~~~~~~
+
+WASM + polish (Feb 28):
+2026-02-28  defde59  Complete SDL2 → winit+softbuffer migration
+2026-02-28  54f4a6a  Add scripts, tests, progress screenshots
+2026-02-28  04bb06d  Fix dragged piece rendering
+2026-02-28  4c38027  Add GitHub Pages landing page
+2026-02-28  235d34d  Fix GHA cross-compilation
+2026-02-28  979ddbe  Add WASM, Windows, and Linux builds to CI/CD
+2026-02-28  9e9208d  Fix WASM build: EventLoopExtWebSys
+2026-02-28  b3a1064  Disable wasm-opt
+2026-02-28  2bd277e  Fix wasm-opt config
+2026-02-28  ed4d629  Fix WASM 404s
+2026-02-28  7599105  Fix WASM rendering
+
+Save/load + blog (Mar 2-5):
+2026-03-02  9f77a4c  Add persistent save/load (native + WASM localStorage)
+2026-03-05  9e1f9fe  Update WASM backlink to blog post
+2026-03-05  ad6b51f  Redesign release landing page
+2026-03-05  4624501+ (5 more landing page tweaks)
+
+Summary: 35 commits. Feb 15 (1 day!) to fully playable Rust version.
+Result: "Best overall." 307,199/307,200 pixels identical.
+
+
+COMBINED TIMELINE (visual)
+==========================
+Jan 14 ██ chromatroning (Opus 4.5, Raylib)
+Jan 15 ██ chromatroning END / m2c START / cursor START
+Jan 16 ·· m2c / cursor
+Jan 17 ·· m2c / cursor END (dev)
+Jan 18 ·· m2c
+Jan 19 ·· m2c
+Jan 20 ·· m2c
+Jan 21 ·· m2c END
+Jan 22 -- (nothing)
+  ...     ~1 month gap
+Feb 14 -- (nothing)
+Feb 15 ██ cursor CLEANUP + cc46 START (Opus 4.6, Rust) — HUGE day
+Feb 16 ·· cc46 (98% pixel match) / cursor cleanup END
+Feb 17 ·· cc46 (font work)
+Feb 18 ·· cc46 (vgasys.fon → 99.9997%)
+Feb 19 ·· cc46 (Retina fix, CI/CD)
+Feb 20-27  (gap)
+Feb 28 ██ cc46 (SDL2→winit, WASM, multiplatform CI/CD)
+Mar 02 ·· cc46 (save/load)
+Mar 05 ·· cc46 (blog post, landing page)
