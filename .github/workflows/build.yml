@@ -212,10 +212,10 @@ jobs:
           DMG_X86_64_SHA256="$(sha256sum artifacts/dmg/Chromatron-macos-intel-unsigned.dmg | awk '{print $1}')"
           WIN_ZIP_SHA256="$(sha256sum artifacts/windows/Chromatron-windows-x86_64.zip | awk '{print $1}')"
           LINUX_TAR_SHA256="$(sha256sum artifacts/linux/Chromatron-linux-x86_64.tar.gz | awk '{print $1}')"
-          DMG_ARM64_SIZE="$(ls -lh artifacts/dmg/Chromatron-macos-apple-silicon-unsigned.dmg | awk '{print $5}')B"
-          DMG_X86_64_SIZE="$(ls -lh artifacts/dmg/Chromatron-macos-intel-unsigned.dmg | awk '{print $5}')B"
-          WIN_ZIP_SIZE="$(ls -lh artifacts/windows/Chromatron-windows-x86_64.zip | awk '{print $5}')B"
-          LINUX_TAR_SIZE="$(ls -lh artifacts/linux/Chromatron-linux-x86_64.tar.gz | awk '{print $5}')B"
+          DMG_ARM64_SIZE="$(ls -lh artifacts/dmg/Chromatron-macos-apple-silicon-unsigned.dmg | awk '{print $5}' | sed 's/K/k/')B"
+          DMG_X86_64_SIZE="$(ls -lh artifacts/dmg/Chromatron-macos-intel-unsigned.dmg | awk '{print $5}' | sed 's/K/k/')B"
+          WIN_ZIP_SIZE="$(ls -lh artifacts/windows/Chromatron-windows-x86_64.zip | awk '{print $5}' | sed 's/K/k/')B"
+          LINUX_TAR_SIZE="$(ls -lh artifacts/linux/Chromatron-linux-x86_64.tar.gz | awk '{print $5}' | sed 's/K/k/')B"
           sed \
             -e "s|__DIST_REPO__|${DIST_REPO}|g" \
             -e "s|__SITE_URL__|${SITE_URL}|g" \
