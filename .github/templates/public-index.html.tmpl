@@ -3,63 +3,191 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chromatron</title>
+  <title>Chromatron Recompiled</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; }
-    a { font-weight: 600; }
-    code { background: #f4f4f4; padding: 0.1rem 0.3rem; border-radius: 4px; }
+    :root {
+      --bg: #0d0d0d;
+      --text: #d4d4d4;
+      --accent: #b85cb8; /* Softer violet */
+      --muted: #777;
+      --border: #222;
+      --bg-card: #141414;
+    }
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 600px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+      line-height: 1.6;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: normal;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+    p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    
+    .header-info {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    .play-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 2rem;
+      background: var(--bg-card);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .play-link:hover {
+      border-color: var(--accent);
+      text-decoration: none;
+    }
+
+    .download-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .download-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+    }
+    .dl-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .dl-title a {
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dl-title a:hover {
+      text-decoration: underline;
+    }
+    .dl-icon {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+    .meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      font-family: monospace;
+    }
+    code {
+      background: #000;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      color: #aaa;
+      word-break: break-all;
+    }
+    .note {
+      font-size: 0.8rem;
+      color: #aaa;
+      background: #1e1e1e;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      border-left: 2px solid var(--accent);
+    }
+    .note code {
+      color: #fff;
+    }
   </style>
 </head>
 <body>
-  <h1>Chromatron</h1>
+  <div class="header-info">
+    <h1>Chromatron Recompiled</h1>
+    <p>
+      Original by <a href="https://www.silverspaceship.com/chromatron/">Silver Spaceship Software</a>.<br>
+      Recompiled natively by <a href="https://p.migdal.pl/">Piotr Migda&#x142;</a> &middot; <a href="https://quesma.com/blog/chromatron-recompiled/">Read the story</a><br>
+      Build: <code>__COMMIT_SHORT__</code> &middot; __BUILD_UTC__
+    </p>
+  </div>
 
-  <p>Original game by <a href="https://www.silverspaceship.com/chromatron/">Silver Spaceship Software</a>.<br>
-  Recompiled binaries posted with the original author's permission.<br>
-  Recompilation by <a href="https://p.migdal.pl/">Piotr Migda&#x142;</a> (blog post coming soon).</p>
+  <a href="play/" class="play-link">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    Play in Browser (WASM)
+  </a>
 
-  <h2>Download</h2>
-  <ul>
-    <li><a href="play/">Play online (WASM)</a></li>
-  </ul>
-  <h3>macOS</h3>
-  <ul>
-    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-apple-silicon-unsigned.dmg">macOS Apple Silicon (.dmg)</a></li>
-    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-intel-unsigned.dmg">macOS Intel (.dmg)</a></li>
-  </ul>
+  <div class="download-list">
+    
+    <!-- macOS Apple Silicon -->
+    <div class="download-card">
+      <div class="dl-title">
+        <a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-apple-silicon-unsigned.dmg">
+          <svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          macOS (Apple Silicon)
+        </a>
+      </div>
+      <div class="meta">Size: __DMG_ARM64_SIZE__ &middot; SHA256: <code>__DMG_ARM64_SHA256__</code></div>
+      <div class="note">Run <code>xattr -cr /Applications/Chromatron.app</code> (otherwise might show "app is damaged")</div>
+    </div>
 
-  <h3>Windows</h3>
-  <ul>
-    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-windows-x86_64.zip">Windows x86_64 (.zip)</a></li>
-  </ul>
+    <!-- macOS Intel -->
+    <div class="download-card">
+      <div class="dl-title">
+        <a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-macos-intel-unsigned.dmg">
+          <svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          macOS (Intel)
+        </a>
+      </div>
+      <div class="meta">Size: __DMG_X86_64_SIZE__ &middot; SHA256: <code>__DMG_X86_64_SHA256__</code></div>
+      <div class="note">Run <code>xattr -cr /Applications/Chromatron.app</code> (otherwise might show "app is damaged")</div>
+    </div>
 
-  <h3>Linux</h3>
-  <ul>
-    <li><a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-linux-x86_64.tar.gz">Linux x86_64 (.tar.gz)</a></li>
-  </ul>
+    <!-- Windows -->
+    <div class="download-card">
+      <div class="dl-title">
+        <a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-windows-x86_64.zip">
+          <svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Windows (x86_64)
+        </a>
+      </div>
+      <div class="meta">Size: __WIN_ZIP_SIZE__ &middot; SHA256: <code>__WIN_ZIP_SHA256__</code></div>
+      <div class="note">Click "More info" &rarr; "Run anyway" if SmartScreen warns you.</div>
+    </div>
 
-  <h2>Installation Notes</h2>
-  <h3>macOS</h3>
-  <p>If you get a message saying the app is damaged and cannot be opened, run in Terminal:</p>
-  <pre><code>xattr -cr /Applications/Chromatron.app</code></pre>
-  <p>This is necessary because the app is not signed with an Apple Developer ID.</p>
+    <!-- Linux -->
+    <div class="download-card">
+      <div class="dl-title">
+        <a href="https://github.com/__DIST_REPO__/releases/latest/download/Chromatron-linux-x86_64.tar.gz">
+          <svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Linux (x86_64)
+        </a>
+      </div>
+      <div class="meta">Size: __LINUX_TAR_SIZE__ &middot; SHA256: <code>__LINUX_TAR_SHA256__</code></div>
+    </div>
 
-  <h3>Windows</h3>
-  <p>Extract the zip and run <code>chromatron.exe</code>. Windows SmartScreen may warn about an unrecognized app &mdash; click &ldquo;More info&rdquo; then &ldquo;Run anyway&rdquo;.</p>
-
-  <h3>Linux</h3>
-  <p>Extract and run:</p>
-  <pre><code>tar xzf Chromatron-linux-x86_64.tar.gz
-chmod +x chromatron
-./chromatron</code></pre>
-
-  <h2>Build Info</h2>
-  <ul>
-    <li>Built at: __BUILD_UTC__</li>
-    <li>Commit: <code>__COMMIT_SHORT__</code></li>
-    <li>Apple Silicon DMG SHA256: <code>__DMG_ARM64_SHA256__</code></li>
-    <li>Intel DMG SHA256: <code>__DMG_X86_64_SHA256__</code></li>
-    <li>Windows ZIP SHA256: <code>__WIN_ZIP_SHA256__</code></li>
-    <li>Linux TAR.GZ SHA256: <code>__LINUX_TAR_SHA256__</code></li>
-  </ul>
+  </div>
 </body>
 </html>

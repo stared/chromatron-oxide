@@ -208,6 +208,10 @@ jobs:
           DMG_X86_64_SHA256="$(sha256sum artifacts/dmg/Chromatron-macos-intel-unsigned.dmg | awk '{print $1}')"
           WIN_ZIP_SHA256="$(sha256sum artifacts/windows/Chromatron-windows-x86_64.zip | awk '{print $1}')"
           LINUX_TAR_SHA256="$(sha256sum artifacts/linux/Chromatron-linux-x86_64.tar.gz | awk '{print $1}')"
+          DMG_ARM64_SIZE="$(ls -lh artifacts/dmg/Chromatron-macos-apple-silicon-unsigned.dmg | awk '{print $5}')B"
+          DMG_X86_64_SIZE="$(ls -lh artifacts/dmg/Chromatron-macos-intel-unsigned.dmg | awk '{print $5}')B"
+          WIN_ZIP_SIZE="$(ls -lh artifacts/windows/Chromatron-windows-x86_64.zip | awk '{print $5}')B"
+          LINUX_TAR_SIZE="$(ls -lh artifacts/linux/Chromatron-linux-x86_64.tar.gz | awk '{print $5}')B"
           sed \
             -e "s|__DIST_REPO__|${DIST_REPO}|g" \
             -e "s|__BUILD_UTC__|${BUILD_UTC}|g" \
@@ -216,6 +220,10 @@ jobs:
             -e "s|__DMG_X86_64_SHA256__|${DMG_X86_64_SHA256}|g" \
             -e "s|__WIN_ZIP_SHA256__|${WIN_ZIP_SHA256}|g" \
             -e "s|__LINUX_TAR_SHA256__|${LINUX_TAR_SHA256}|g" \
+            -e "s|__DMG_ARM64_SIZE__|${DMG_ARM64_SIZE}|g" \
+            -e "s|__DMG_X86_64_SIZE__|${DMG_X86_64_SIZE}|g" \
+            -e "s|__WIN_ZIP_SIZE__|${WIN_ZIP_SIZE}|g" \
+            -e "s|__LINUX_TAR_SIZE__|${LINUX_TAR_SIZE}|g" \
             .github/templates/public-index.html.tmpl > site/index.html
 
       - name: Upload Pages artifact
