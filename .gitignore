@@ -43,8 +43,12 @@ screenshots/font_comparison.png
 # Trial fonts (not used in final build)
 assets/fonts/*.ttf
 assets/fonts/*.otf
+assets/fonts/sserife.fon
 assets/fonts/sserife_microsoft.fon
 assets/fonts/sseriff.fon
+
+# Save file
+chroma.dat
 
 # Added by cargo
 

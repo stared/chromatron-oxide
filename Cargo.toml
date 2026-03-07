@@ -3,6 +3,7 @@ name = "chromatron"
 version = "0.1.0"
 edition = "2024"
 description = "Pixel-perfect recompilation of Chromatron (laser puzzle game)"
+repository = "https://github.com/stared/chromatron-oxide"
 
 [dependencies]
 winit = "0.30"

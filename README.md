@@ -1,8 +1,8 @@
 # Chromatron
 
-Pixel-perfect recompilation of **Chromatron** (laser puzzle game by Sean Barrett / Silver Spaceship Software) in Rust + SDL2.
+Pixel-perfect recompilation of **Chromatron** (laser puzzle game) in Rust, reverse-engineered from the original Win32 binary.
 
-Reverse engineered from the original Win32 and Mac PPC binaries.
+Read the full story: [Chromatron Recompiled](https://quesma.com/blog/chromatron-recompiled/)
 
 ## Build & Run
 
@@ -10,7 +10,9 @@ Reverse engineered from the original Win32 and Mac PPC binaries.
 cargo run --release
 ```
 
-## How to play
+Requires Rust. No external dependencies beyond what Cargo fetches (winit + softbuffer).
+
+## How to Play
 
 - **Drag** pieces from the toolbox onto the grid
 - **Click** a placed piece to rotate it
@@ -20,9 +22,15 @@ cargo run --release
 
 ## Keys
 
-- **Space / + / =** — next level
-- **-** — previous level
-- **R** — reset level
-- **Ctrl+C** — copy solution
-- **Ctrl+V** — paste solution
-- **ESC** — quit
+- **Space / + / =** --- next level
+- **-** --- previous level
+- **R** --- reset level
+- **Ctrl+C** --- copy solution
+- **Ctrl+V** --- paste solution
+- **ESC** --- quit
+
+## Credits
+
+Original game by Sean Barrett / [Silver Spaceship Software](http://silverspaceship.com/).
+
+This recompilation is shared for educational purposes. No copyright is claimed over the original game logic or assets.

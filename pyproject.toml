@@ -1,7 +1,7 @@
 [project]
 name = "chromatron-cc46"
 version = "0.1.0"
-description = "Add your description here"
+description = "Pixel-perfect recompilation of Chromatron (laser puzzle game) in Rust"
 requires-python = ">=3.13"
 dependencies = [
     "numpy>=2.4.2",
