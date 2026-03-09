@@ -47,6 +47,10 @@ assets/fonts/sserife.fon
 assets/fonts/sserife_microsoft.fon
 assets/fonts/sseriff.fon
 
+# Derived originals (regenerate with instructions in README)
+originals/chromatron_unpacked.exe
+originals/Chromatron.app/
+
 # Save file
 chroma.dat
 
