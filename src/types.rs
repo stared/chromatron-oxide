@@ -233,15 +233,26 @@ pub const BEAM_COLORS: [(u8, u8, u8); 8] = [
     (255, 255, 255), // 7: white        0xFFFFFF
 ];
 
-/// Doppler forward color shift: R→G, G→B, B→R
-/// Source: DAT_0040b074 extracted = [0, 2, 4, 0, 1, 0, 4, 1]
-/// Index by color bitmask, returns shifted color
-pub const DOPPLER_FWD: [u8; 8] = [0, 2, 4, 0, 1, 0, 4, 1];
+/// Doppler color-shift lookup tables. Used only by the entangled-beam post-pass
+/// in FUN_00401620 @ ~0x401700 (`(&DAT_0040b088)[color * 4]` / `(&DAT_0040b074)[color * 4]`).
+/// Non-entangled beams take the inline bitwise path of case 7 in FUN_00401090,
+/// which computes exactly the same mapping.
+///
+/// In the binary each table is 5 int32 entries (0x40b074..0x40b088 and
+/// 0x40b088..0x40b09c). An entangled beam always carries a single colour bit —
+/// the tangler (case 9) emits one entangled pair per bit — so indices 3 and 5..7
+/// are never reached. They are reproduced here as the bytes the original would
+/// actually read, rather than invented.
 
-/// Doppler reverse color shift: R→B, G→R, B→G
-/// Source: DAT_0040b088 extracted = [0, 4, 1, 0, 2, 0, ?, ?]
-/// (entries 6,7 look garbled in extraction — derive from logic)
-pub const DOPPLER_REV: [u8; 8] = [0, 4, 1, 0, 2, 0, 2, 4];
+/// Shift applied when the beam leaves the doppler at relative angle 2 — the
+/// doppler’s forward direction: R→G, G→B, B→R (colour bits: 4→2, 2→1, 1→4).
+/// Source: DAT_0040b088 (entries 5..7 spill into the adjacent data)
+pub const DOPPLER_REL2: [u8; 8] = [0, 4, 1, 0, 2, 0, 21, 30];
+
+/// Shift applied when the beam leaves the doppler at relative angle 6 — backwards
+/// through the doppler: R→B, B→G, G→R (colour bits: 4→1, 1→2, 2→4).
+/// Source: DAT_0040b074 (entries 5..7 spill into DAT_0040b088)
+pub const DOPPLER_REL6: [u8; 8] = [0, 2, 4, 0, 1, 0, 4, 1];
 
 /// Mouse action types (from WndProc message mapping)
 /// Source: WndProc @ 0x4038d0
